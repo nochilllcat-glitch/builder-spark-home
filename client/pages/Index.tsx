@@ -448,7 +448,14 @@ export default function Index() {
             {!active ? (
               <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-pink-50 to-violet-50 aspect-[3/4] flex items-center justify-center">
                 {hasCamera ? (
-                  <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
+                  <>
+                    <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
+                    {isCapturing && countdown && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="rounded-full bg-[rgba(0,0,0,0.6)] text-white w-28 h-28 flex items-center justify-center text-4xl font-bold">{countdown}</div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="p-6 text-center text-sm text-[hsl(var(--mood-muted-ink))]">
                     <p>Camera unavailable. You can upload a photo instead.</p>
