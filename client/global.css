@@ -57,6 +57,16 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* MoodBooth custom palette (HSL triplets) */
+    --mood-bg: 270 100% 98%; /* lavender mist */
+    --mood-ink: 257 21% 18%;
+    --mood-muted-ink: 258 10% 46%;
+    --mood-primary: 327 63% 84%; /* blush pink */
+    --mood-secondary: 195 77% 88%; /* sky */
+    --mood-secondary-ink: 205 30% 20%;
+    --mood-accent: 46 100% 85%; /* butter */
+    --mood-accent-ink: 35 30% 20%;
   }
 
   .dark {
