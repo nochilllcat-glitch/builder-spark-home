@@ -419,32 +419,6 @@ export default function Index() {
                 </button>
               </div>
 
-              <div className="col-span-2 flex items-center gap-2">
-                <label className="text-xs text-[hsl(var(--mood-muted-ink))]">Filter</label>
-                <div className="flex gap-2 overflow-x-auto items-center">
-                  {FILTERS.map((f) => (
-                    <button
-                      key={f.key}
-                      onClick={() => setFilterKey(f.key)}
-                      className={`rounded-full px-3 py-1 text-xs ring-1 ring-black/5 shadow-sm ${
-                        filterKey === f.key ? "bg-[hsl(var(--mood-primary))] text-white" : "bg-white"
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => randomizeFilter(true)}
-                    className="rounded-full px-3 py-1 text-xs bg-[hsl(var(--mood-accent))] text-[hsl(var(--mood-accent-ink))] shadow-sm"
-                  >
-                    Random
-                  </button>
-                  <label className="ml-2 inline-flex items-center gap-2 text-xs text-[hsl(var(--mood-muted-ink))]">
-                    <input type="checkbox" checked={autoRandomEffect} onChange={(e) => setAutoRandomEffect(e.target.checked)} className="h-4 w-4" />
-                    Auto
-                  </label>
-                </div>
-              </div>
 
               <div className="col-span-2 flex items-center justify-between gap-2 pt-1">
                 {!active ? (
