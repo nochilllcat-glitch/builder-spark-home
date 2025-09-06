@@ -415,10 +415,10 @@ export default function Index() {
     if (!canvas) return;
     const blob: Blob | null = await new Promise((res) => canvas.toBlob(b => res(b), "image/jpeg", 0.92));
     if (!blob) return onDownload();
-    const file = new File([blob], `moodbooth-${Date.now()}.jpg`, { type: "image/jpeg" });
+    const file = new File([blob], `smilebooth-${Date.now()}.jpg`, { type: "image/jpeg" });
     if ((navigator as any).share && (navigator as any).canShare?.({ files: [file] })) {
       try {
-        await (navigator as any).share({ files: [file], title: "MoodBooth", text: quote });
+        await (navigator as any).share({ files: [file], title: "Smile Booth", text: quote });
       } catch (_) {
         // user cancelled or share failed -> fall back to download
         onDownload();
