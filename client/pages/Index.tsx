@@ -491,19 +491,20 @@ function PolaroidPreview({ images, quote, filterCss }: { images: string[]; quote
   return (
     <div className="relative mx-auto w-full max-w-md">
       {/* Polaroid card (visual only, actual export is 1500x1200) */}
-      <div className="relative rounded-2xl bg-[hsl(var(--paper))] p-4 shadow-xl" style={{ maxWidth: 540 }}>
+      <div className="relative rounded-2xl bg-[hsl(var(--paper))] p-4 shadow-xl" style={{ maxWidth: 420 }}>
         <div className="absolute -top-3 left-8 h-6 w-32 rotate-[-6deg] rounded bg-[#E8D7C2] shadow" />
         <div className="absolute -top-4 right-10 h-6 w-28 rotate-[8deg] rounded bg-[#D8E7D6] shadow" />
-        <div className="overflow-hidden rounded-md border border-black/5 p-3 bg-[hsl(var(--paper))]">
-          <div className="w-full bg-[hsl(var(--paper))]">
+        <div className="relative overflow-hidden rounded-md border border-black/5 p-3 bg-[hsl(var(--paper))]">
+          <div className="w-full bg-[hsl(var(--paper))] flex items-center justify-center" style={{height: '420px'}}>
             {imgs.length === 2 ? (
-              <div className="flex gap-2">
-                <img src={imgs[0]} className="h-40 w-1/2 object-cover rounded-sm" style={{ filter: filterCss }} alt="left" />
-                <img src={imgs[1]} className="h-40 w-1/2 object-cover rounded-sm" style={{ filter: filterCss }} alt="right" />
+              <div className="flex flex-col gap-2 h-full w-full">
+                <img src={imgs[0]} className="h-1/2 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="top" />
+                <img src={imgs[1]} className="h-1/2 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="bottom" />
               </div>
             ) : (
-              <img src={imgs[0]} className="h-56 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="single" />
+              <img src={imgs[0]} className="h-full w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="single" />
             )}
+            <div className="grain-overlay" />
           </div>
         </div>
         <div className="pt-4">
