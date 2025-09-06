@@ -404,7 +404,7 @@ export default function Index() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `moodbooth-${Date.now()}.jpg`;
+      a.download = `smilebooth-${Date.now()}.jpg`;
       a.click();
       URL.revokeObjectURL(url);
     }, "image/jpeg", 0.92);
