@@ -155,10 +155,8 @@ export default function Index() {
     const url = canvas.toDataURL("image/jpeg", 0.9);
     rawCapturedRef.current = url; // keep original raw capture
     setCapturedUrl(url);
-    if (autoRandomEffect) {
-      // delay randomize a tick so state updates happen in order
-      setTimeout(() => randomizeFilter(true), 20);
-    }
+    // delay randomize a tick so state updates happen in order
+    setTimeout(() => randomizeFilter(true), 20);
     stopCamera();
   };
 
@@ -180,10 +178,8 @@ export default function Index() {
     const url = canvas.toDataURL("image/jpeg", 0.9);
     rawCapturedRef.current = url; // keep original raw capture
     setCapturedUrl(url);
-    if (autoRandomEffect) {
-      // delay randomize a tick so state updates happen in order
-      setTimeout(() => randomizeFilter(true), 20);
-    }
+    // delay randomize a tick so state updates happen in order
+    setTimeout(() => randomizeFilter(true), 20);
     stopCamera();
   };
 
