@@ -56,8 +56,7 @@ export default function Index() {
   const [filterKey, setFilterKey] = useState<string>("none");
   const [facing, setFacing] = useState<"user" | "environment">("user");
   const rawCapturedRef = useRef<string | null>(null);
-  const [autoRandomEffect, setAutoRandomEffect] = useState<boolean>(true);
-
+  
   const filterCss = useMemo(() => FILTERS.find(f => f.key === filterKey)?.css || "none", [filterKey]);
 
   const randomizeFilter = (excludeNone = true) => {
