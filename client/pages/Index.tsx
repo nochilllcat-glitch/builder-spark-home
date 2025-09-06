@@ -56,12 +56,16 @@ export default function Index() {
   const snapCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [hasCamera, setHasCamera] = useState<boolean>(false);
   const [capturedUrl, setCapturedUrl] = useState<string | null>(null);
+  const [capturedUrls, setCapturedUrls] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [quote, setQuote] = useState<string>("");
   const [filterKey, setFilterKey] = useState<string>("none");
   const [facing, setFacing] = useState<"user" | "environment">("user");
+  const [frameKey, setFrameKey] = useState<string>("polaroid");
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
   const rawCapturedRef = useRef<string | null>(null);
-  
+
   const filterCss = useMemo(() => FILTERS.find(f => f.key === filterKey)?.css || "none", [filterKey]);
 
   const randomizeFilter = (excludeNone = true) => {
