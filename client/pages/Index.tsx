@@ -463,17 +463,50 @@ export default function Index() {
   );
 }
 
-function PolaroidPreview({ imageUrl, quote, filterCss }: { imageUrl: string; quote: string; filterCss: string }) {
+function PolaroidPreview({ images, frameKey, quote, filterCss }: { images: string[]; frameKey: string; quote: string; filterCss: string }) {
+  const imgs = images.slice(0,2);
   return (
     <div className="relative mx-auto w-full max-w-sm">
       {/* Polaroid card */}
       <div className="relative rounded-xl bg-white p-3 shadow-xl">
-        <div className="absolute -top-3 left-8 h-6 w-32 rotate-[-6deg] rounded bg-pink-200/80 shadow" />
-        <div className="absolute -top-4 right-10 h-6 w-28 rotate-[8deg] rounded bg-sky-200/80 shadow" />
-        <div className="overflow-hidden rounded-md border border-black/5 bg-black/5">
-          <div className="aspect-[3/4] w-full overflow-hidden">
-            <img src={imageUrl} className="h-full w-full object-cover" style={{ filter: filterCss }} alt="Captured" />
-          </div>
+        <div className="absolute -top-3 left-8 h-6 w-32 rotate-[-6deg] rounded bg-[#F2D9DA]/80 shadow" />
+        <div className="absolute -top-4 right-10 h-6 w-28 rotate-[8deg] rounded bg-[#D9EEF2]/80 shadow" />
+        <div className="overflow-hidden rounded-md border border-black/5 bg-black/5 p-2">
+          {frameKey === 'twin' ? (
+            <div className="flex gap-2">
+              {imgs.map((src, i) => (
+                <div key={i} className="w-1/2 overflow-hidden rounded-sm">
+                  <img src={src} className="h-40 w-full object-cover" style={{ filter: filterCss }} alt={`shot-${i}`} />
+                </div>
+              ))}
+            </div>
+          ) : frameKey === 'strip' ? (
+            <div className="flex flex-col gap-2">
+              {imgs.map((src,i) => (
+                <div key={i} className="w-full overflow-hidden rounded-sm">
+                  <img src={src} className="h-44 w-full object-cover" style={{ filter: filterCss }} alt={`shot-${i}`} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            // polaroid - place two mini photos side-by-side inside main frame
+            <div className="flex gap-2">
+              {imgs.length === 2 ? (
+                <>
+                  <div className="w-1/2 overflow-hidden rounded-sm">
+                    <img src={imgs[0]} className="h-44 w-full object-cover" style={{ filter: filterCss }} alt="left" />
+                  </div>
+                  <div className="w-1/2 overflow-hidden rounded-sm">
+                    <img src={imgs[1]} className="h-44 w-full object-cover" style={{ filter: filterCss }} alt="right" />
+                  </div>
+                </>
+              ) : (
+                <div className="w-full overflow-hidden rounded-sm">
+                  <img src={imgs[0]} className="h-56 w-full object-cover" style={{ filter: filterCss }} alt="single" />
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="pt-4">
           <p className="font-typewriter text-[17px] leading-6 text-stone-800">
