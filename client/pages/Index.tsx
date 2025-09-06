@@ -372,7 +372,7 @@ export default function Index() {
     }
   };
 
-  const active = Boolean(capturedUrl);
+  const active = capturedUrls.length > 0;
 
   return (
     <div className="min-h-screen bg-[hsl(var(--mood-bg))] text-[hsl(var(--mood-ink))]">
