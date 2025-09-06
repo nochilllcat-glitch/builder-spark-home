@@ -51,7 +51,6 @@ export default function Index() {
   const [hasCamera, setHasCamera] = useState<boolean>(false);
   const [capturedUrl, setCapturedUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [category, setCategory] = useState<CategoryKey>("positivity");
   const [quote, setQuote] = useState<string>("");
   const [filterKey, setFilterKey] = useState<string>("none");
   const [facing, setFacing] = useState<"user" | "environment">("user");
@@ -98,8 +97,8 @@ export default function Index() {
   }, [filterKey]);
 
   useEffect(() => {
-    randomizeQuote(category);
-  }, [category]);
+    randomizeQuote();
+  }, []);
 
   useEffect(() => {
     startCamera();
@@ -155,6 +154,7 @@ export default function Index() {
     const url = canvas.toDataURL("image/jpeg", 0.9);
     rawCapturedRef.current = url; // keep original raw capture
     setCapturedUrl(url);
+    randomizeQuote();
     // delay randomize a tick so state updates happen in order
     setTimeout(() => randomizeFilter(true), 20);
     stopCamera();
@@ -178,14 +178,15 @@ export default function Index() {
     const url = canvas.toDataURL("image/jpeg", 0.9);
     rawCapturedRef.current = url; // keep original raw capture
     setCapturedUrl(url);
+    randomizeQuote();
     // delay randomize a tick so state updates happen in order
     setTimeout(() => randomizeFilter(true), 20);
     stopCamera();
   };
 
-  const randomizeQuote = (cat: CategoryKey) => {
-    const list = QUOTES[cat];
-    const pick = list[Math.floor(Math.random() * list.length)];
+  const randomizeQuote = () => {
+    const all = Object.values(QUOTES).flat();
+    const pick = all[Math.floor(Math.random() * all.length)];
     setQuote(pick);
   };
 
@@ -394,24 +395,8 @@ export default function Index() {
           {/* Controls */}
           <section className="rounded-2xl bg-white/70 shadow-lg ring-1 ring-black/5 p-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="col-span-2 flex items-center gap-2">
-                <label className="text-xs text-[hsl(var(--mood-muted-ink))]">Category</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as CategoryKey)}
-                  className="flex-1 rounded-md border border-[hsl(var(--border))] bg-white px-3 py-2"
-                >
-                  <option value="positivity">Positivity</option>
-                  <option value="motivation">Motivation</option>
-                  <option value="gratitude">Gratitude</option>
-                  <option value="selflove">Self-love</option>
-                </select>
-                <button
-                  onClick={() => randomizeQuote(category)}
-                  className="rounded-md bg-[hsl(var(--mood-accent))] px-3 py-2 text-[hsl(var(--mood-accent-ink))] shadow hover:brightness-105"
-                >
-                  New quote
-                </button>
+              <div className="col-span-2">
+                <p className="text-xs text-[hsl(var(--mood-muted-ink))]">Quotes are randomly selected for you — feel the good vibes ✿</p>
               </div>
 
 
