@@ -146,8 +146,8 @@ export default function Index() {
     }
   };
 
-  const takePhoto = async () => {
-    if (!videoRef.current) return;
+  const captureOnce = async () => {
+    if (!videoRef.current) return null;
     const video = videoRef.current;
     const canvas = snapCanvasRef.current ?? document.createElement("canvas");
     snapCanvasRef.current = canvas;
@@ -156,18 +156,39 @@ export default function Index() {
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    // Apply CSS-like filter via canvas context
+    if (!ctx) return null;
     ctx.filter = filterCss;
     ctx.drawImage(video, 0, 0, w, h);
     ctx.filter = "none";
     const url = canvas.toDataURL("image/jpeg", 0.9);
-    rawCapturedRef.current = url; // keep original raw capture
-    setCapturedUrl(url);
-    randomizeQuote();
-    // delay randomize a tick so state updates happen in order
-    setTimeout(() => randomizeFilter(true), 20);
+    return url;
+  };
+
+  const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+  const startCaptureSequence = async () => {
+    if (!videoRef.current) return;
+    setIsCapturing(true);
+    setCapturedUrls([]);
+    for (let i = 0; i < 2; i++) {
+      // countdown 3..1
+      for (let c = 3; c >= 1; c--) {
+        setCountdown(c);
+        await sleep(700);
+      }
+      setCountdown(null);
+      const url = await captureOnce();
+      if (url) {
+        rawCapturedRef.current = url;
+        setCapturedUrls(prev => [...prev, url]);
+        setCapturedUrl(url);
+      }
+      await sleep(600);
+    }
+    setIsCapturing(false);
     stopCamera();
+    randomizeQuote();
+    setTimeout(() => randomizeFilter(true), 20);
   };
 
   const onUpload = async (file: File) => {
