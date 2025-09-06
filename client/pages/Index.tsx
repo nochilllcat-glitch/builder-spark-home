@@ -586,3 +586,18 @@ function drawTape(
   ctx.fill();
   ctx.restore();
 }
+
+function drawGrain(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, intensity = 0.05) {
+  const area = Math.max(0, Math.floor((w * h) / 1200));
+  ctx.save();
+  ctx.globalAlpha = intensity;
+  for (let i = 0; i < area; i++) {
+    const rx = x + Math.random() * w;
+    const ry = y + Math.random() * h;
+    const s = Math.random() * 1.6;
+    const g = Math.floor(180 + Math.random() * 60);
+    ctx.fillStyle = `rgba(${g},${g},${g},1)`;
+    ctx.fillRect(rx, ry, s, s);
+  }
+  ctx.restore();
+}
