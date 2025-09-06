@@ -303,7 +303,7 @@ export default function Index() {
             {!active ? (
               <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-pink-50 to-violet-50 aspect-[3/4] flex items-center justify-center">
                 {hasCamera ? (
-                  <video ref={videoRef} playsInline className="h-full w-full object-cover" />
+                  <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
                 ) : (
                   <div className="p-6 text-center text-sm text-[hsl(var(--mood-muted-ink))]">
                     <p>Camera unavailable. You can upload a photo instead.</p>
