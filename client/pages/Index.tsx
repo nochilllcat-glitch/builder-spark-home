@@ -420,7 +420,7 @@ export default function Index() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setFacing(facing === "user" ? "environment" : "user")}
-                      className="rounded-full bg-white/80 px-3 py-2 text-xs shadow hover:bg-white"
+                      className="rounded-full bg-[hsl(var(--paper))] px-3 py-2 text-sm shadow"
                     >
                       Flip
                     </button>
