@@ -424,7 +424,7 @@ export default function Index() {
                     >
                       Flip
                     </button>
-                    <label className="rounded-full bg-white/80 px-3 py-2 text-xs shadow hover:bg-white cursor-pointer">
+                    <label className="rounded-full bg-[hsl(var(--mood-primary))] px-5 py-3 text-sm shadow hover:brightness-105 cursor-pointer">
                       <input
                         type="file"
                         accept="image/*"
