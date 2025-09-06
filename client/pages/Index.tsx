@@ -44,6 +44,12 @@ const FILTERS = [
   { key: "grainy", label: "Grainy", css: "contrast(1.05) saturate(0.95)" },
 ];
 
+const FRAMES = [
+  { key: "polaroid", label: "Polaroid" },
+  { key: "strip", label: "Strip" },
+  { key: "twin", label: "Twin" },
+];
+
 export default function Index() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
