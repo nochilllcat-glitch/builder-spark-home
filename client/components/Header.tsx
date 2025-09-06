@@ -9,7 +9,7 @@ export default function Header() {
             <span className="inline-block h-6 w-6 rounded-md bg-[hsl(var(--mood-primary))] shadow-sm" />
             <span className="font-display text-xl tracking-wider">Smile Booth</span>
           </Link>
-          <span className="text-xs text-[hsl(var(--mood-muted-ink))]">spread joy ✿</span>
+          <span className="text-xs text-[hsl(var(--mood-muted-ink))]">smile & share ✿</span>
         </div>
       </div>
     </header>
