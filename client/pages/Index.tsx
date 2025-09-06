@@ -347,9 +347,14 @@ export default function Index() {
       const quoteMaxWidth = paperWidth - 112;
       await (document as any).fonts?.ready?.catch?.(() => {});
       ctx.fillStyle = "#3C2A21";
-      ctx.textAlign = "left";
+      ctx.textAlign = "center";
       ctx.font = "36px 'Special Elite', 'Courier New', monospace";
-      wrapText(ctx, `\u201C${quote}\u201D`, quoteX, quoteY, quoteMaxWidth, 44);
+      const qx = paperX + paperWidth / 2 - quoteMaxWidth / 2;
+      wrapText(ctx, `\u201C${quote}\u201D`, qx, quoteY, quoteMaxWidth, 44);
+
+      // subtle grain overlay on photo area
+      // small intensity (0.06) for texture
+      drawGrain(ctx, photoX, photoY, photoW, photoH, 0.06);
 
       // watermark
       ctx.fillStyle = "#9B8C7B";
