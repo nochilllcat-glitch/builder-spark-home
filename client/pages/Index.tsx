@@ -100,9 +100,7 @@ export default function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterKey]);
 
-  useEffect(() => {
-    randomizeQuote();
-  }, []);
+  // Quotes are selected after capture/upload; do not randomize on initial landing page.
 
   useEffect(() => {
     startCamera();
