@@ -67,6 +67,9 @@
     --mood-secondary-ink: 40 18% 15%;
     --mood-accent: 150 20% 48%; /* sage */
     --mood-accent-ink: 150 12% 16%;
+
+    /* paper color for frames and panels */
+    --paper: 40 90% 96%;
   }
 
   .dark {
