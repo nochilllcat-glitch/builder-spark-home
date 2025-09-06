@@ -55,9 +55,9 @@ export default function Index() {
   const [quote, setQuote] = useState<string>("");
   const [filterKey, setFilterKey] = useState<string>("none");
   const [facing, setFacing] = useState<"user" | "environment">("user");
-  const [frameKey, setFrameKey] = useState<string>("polaroid");
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
   const rawCapturedRef = useRef<string | null>(null);
 
   const filterCss = useMemo(() => FILTERS.find(f => f.key === filterKey)?.css || "none", [filterKey]);
