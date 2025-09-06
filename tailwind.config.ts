@@ -86,7 +86,7 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontFamily: {
-        display: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: ["Special Elite", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
         hand: ["Caveat", "ui-serif", "Georgia", "serif"],
         typewriter: ["Special Elite", "Courier New", "monospace"],
       },
