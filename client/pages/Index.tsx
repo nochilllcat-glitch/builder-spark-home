@@ -253,14 +253,20 @@ export default function Index() {
   };
 
   const composePolaroid = async () => {
-    if (!capturedUrl) return null;
+    const imgs = capturedUrls.length ? capturedUrls : capturedUrl ? [capturedUrl] : [];
+    if (!imgs.length) return null;
     setBusy(true);
     try {
-      const base = new Image();
-      base.src = capturedUrl;
-      await base.decode();
+      const loaded = await Promise.all(
+        imgs.map(async (src) => {
+          const im = new Image();
+          im.src = src;
+          await im.decode();
+          return im;
+        }),
+      );
 
-      // target export size (mobile-first square-ish polaroid)
+      // target export size
       const W = 1080;
       const H = 1350;
       const canvas = document.createElement("canvas");
@@ -271,61 +277,119 @@ export default function Index() {
       if (!ctx) return null;
       ctx.scale(dpr, dpr);
 
-      // soft background
-      ctx.fillStyle = "#F8F4FF"; // pastel lavender
+      // background
+      ctx.fillStyle = "hsl(var(--mood-bg))";
       ctx.fillRect(0, 0, W, H);
 
-      // drop shadow for the polaroid
+      // paper
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,0.12)";
       ctx.shadowBlur = 24;
       ctx.shadowOffsetY = 18;
-
-      // polaroid paper
       const pad = 40;
       const paperWidth = W - pad * 2;
       const paperHeight = H - pad * 2;
-      const radius = 24;
       const paperX = pad;
       const paperY = pad;
-      roundRect(ctx, paperX, paperY, paperWidth, paperHeight, radius);
-      ctx.fillStyle = "#FFFFFF";
+      roundRect(ctx, paperX, paperY, paperWidth, paperHeight, 24);
+      ctx.fillStyle = "#fff8f2";
       ctx.fill();
       ctx.restore();
 
-      // inner photo area (top margin small, bottom margin large like polaroid)
+      // layout photos based on frameKey
       const innerPadX = 48;
       const innerPadTop = 56;
-      const innerPadBottom = 220; // extra space for caption
+      const innerPadBottom = 220;
       const photoX = paperX + innerPadX;
       const photoY = paperY + innerPadTop;
       const photoW = paperWidth - innerPadX * 2;
       const photoH = paperHeight - innerPadTop - innerPadBottom;
 
-      // draw clipped photo with slight rounding
       ctx.save();
-      roundRect(ctx, photoX, photoY, photoW, photoH, 16);
-      ctx.clip();
-      // apply filter
-      ctx.filter = filterCss;
-      // cover mode
-      const { sx, sy, sw, sh } = cover(base.naturalWidth, base.naturalHeight, photoW, photoH);
-      ctx.drawImage(base, sx, sy, sw, sh, photoX, photoY, photoW, photoH);
-      ctx.filter = "none";
-      ctx.restore();
+      // draw according to frame
+      if (frameKey === "twin" && loaded.length >= 2) {
+        const halfW = (photoW - 8) / 2;
+        // left
+        roundRect(ctx, photoX, photoY, halfW, photoH, 12);
+        ctx.clip();
+        ctx.filter = filterCss;
+        const left = loaded[0];
+        const lcov = cover(left.naturalWidth, left.naturalHeight, halfW, photoH);
+        ctx.drawImage(left, lcov.sx, lcov.sy, lcov.sw, lcov.sh, photoX, photoY, halfW, photoH);
+        ctx.filter = "none";
+        ctx.restore();
 
-      // cute washi tape accents
+        // right
+        ctx.save();
+        roundRect(ctx, photoX + halfW + 8, photoY, halfW, photoH, 12);
+        ctx.clip();
+        ctx.filter = filterCss;
+        const right = loaded[1];
+        const rcov = cover(right.naturalWidth, right.naturalHeight, halfW, photoH);
+        ctx.drawImage(right, rcov.sx, rcov.sy, rcov.sw, rcov.sh, photoX + halfW + 8, photoY, halfW, photoH);
+        ctx.filter = "none";
+        ctx.restore();
+      } else if (frameKey === "strip" && loaded.length >= 2) {
+        const h2 = (photoH - 8) / 2;
+        for (let i = 0; i < 2; i++) {
+          ctx.save();
+          roundRect(ctx, photoX, photoY + i * (h2 + 8), photoW, h2, 12);
+          ctx.clip();
+          ctx.filter = filterCss;
+          const im = loaded[i];
+          const cov = cover(im.naturalWidth, im.naturalHeight, photoW, h2);
+          ctx.drawImage(im, cov.sx, cov.sy, cov.sw, cov.sh, photoX, photoY + i * (h2 + 8), photoW, h2);
+          ctx.filter = "none";
+          ctx.restore();
+        }
+      } else {
+        // default polaroid: if two images show side-by-side small, else full
+        if (loaded.length >= 2) {
+          const halfW = (photoW - 8) / 2;
+          ctx.save();
+          roundRect(ctx, photoX, photoY, halfW, photoH, 12);
+          ctx.clip();
+          ctx.filter = filterCss;
+          const a = loaded[0];
+          const ac = cover(a.naturalWidth, a.naturalHeight, halfW, photoH);
+          ctx.drawImage(a, ac.sx, ac.sy, ac.sw, ac.sh, photoX, photoY, halfW, photoH);
+          ctx.filter = "none";
+          ctx.restore();
+
+          ctx.save();
+          roundRect(ctx, photoX + halfW + 8, photoY, halfW, photoH, 12);
+          ctx.clip();
+          ctx.filter = filterCss;
+          const b = loaded[1];
+          const bc = cover(b.naturalWidth, b.naturalHeight, halfW, photoH);
+          ctx.drawImage(b, bc.sx, bc.sy, bc.sw, bc.sh, photoX + halfW + 8, photoY, halfW, photoH);
+          ctx.filter = "none";
+          ctx.restore();
+        } else {
+          ctx.save();
+          roundRect(ctx, photoX, photoY, photoW, photoH, 16);
+          ctx.clip();
+          ctx.filter = filterCss;
+          const a = loaded[0];
+          const ac = cover(a.naturalWidth, a.naturalHeight, photoW, photoH);
+          ctx.drawImage(a, ac.sx, ac.sy, ac.sw, ac.sh, photoX, photoY, photoW, photoH);
+          ctx.filter = "none";
+          ctx.restore();
+        }
+      }
+
+      // washi tape accents
       drawTape(ctx, paperX + paperWidth * 0.2, paperY - 6, 140, 28, "#FFD5E5", 6, -6);
       drawTape(ctx, paperX + paperWidth * 0.62, paperY - 10, 140, 28, "#D0F0FF", 6, 8);
 
-      // quote text area
+      // quote
       const quoteX = paperX + 56;
       const quoteY = paperY + paperHeight - innerPadBottom + 56;
       const quoteMaxWidth = paperWidth - 112;
       await (document as any).fonts?.ready?.catch?.(() => {});
       ctx.fillStyle = "#3C2A21";
       ctx.textAlign = "left";
-      ctx.font = "36px 'Special Elite', 'Courier New', monospace"; // typewriter
+      ctx.font = "36px 'Special Elite', 'Courier New', monospace";
       wrapText(ctx, `\u201C${quote}\u201D`, quoteX, quoteY, quoteMaxWidth, 44);
 
       // watermark
