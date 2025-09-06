@@ -464,7 +464,7 @@ export default function Index() {
                   <span className="text-xs text-[hsl(var(--mood-muted-ink))]">Tip: You can upload if the camera is blocked.</span>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <button onClick={retake} className="rounded-md px-3 py-2 bg-white ring-1 ring-black/5 shadow">Retake</button>
+                    <button onClick={retake} className="rounded-md px-3 py-2 bg-[hsl(var(--mood-accent))] text-[hsl(var(--mood-accent-ink))] shadow">Retake</button>
                     <button onClick={onDownload} disabled={busy} className="rounded-md px-3 py-2 bg-[hsl(var(--mood-primary))] text-white shadow disabled:opacity-50">Download</button>
                     <button onClick={onShare} disabled={busy} className="rounded-md px-3 py-2 bg-[hsl(var(--mood-secondary))] text-[hsl(var(--mood-secondary-ink))] shadow disabled:opacity-50">Share</button>
                   </div>
