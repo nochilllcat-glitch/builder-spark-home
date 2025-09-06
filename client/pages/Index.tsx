@@ -427,8 +427,15 @@ export default function Index() {
           {/* Controls */}
           <section className="rounded-2xl bg-white/70 shadow-lg ring-1 ring-black/5 p-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="col-span-2">
+              <div className="col-span-2 flex items-center justify-between gap-2">
                 <p className="text-xs text-[hsl(var(--mood-muted-ink))]">Quotes are randomly selected for you — feel the good vibes ✿</p>
+                <div className="flex gap-2">
+                  {FRAMES.map(f => (
+                    <button key={f.key} onClick={() => setFrameKey(f.key)} className={`rounded-md px-3 py-2 text-xs ${frameKey===f.key?"bg-[hsl(var(--mood-primary))] text-white":"bg-white"}`}>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
 
