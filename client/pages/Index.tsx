@@ -288,7 +288,7 @@ export default function Index() {
       ctx.fill();
       ctx.restore();
 
-      // layout photos based on frameKey
+      // layout photos inside the Polaroid area
       const innerPadX = 48;
       const innerPadTop = 56;
       const innerPadBottom = 220;
@@ -298,16 +298,16 @@ export default function Index() {
       const photoH = paperHeight - innerPadTop - innerPadBottom;
 
       ctx.save();
-      // draw according to frame
-      if (frameKey === "twin" && loaded.length >= 2) {
+      if (loaded.length >= 2) {
         const halfW = (photoW - 8) / 2;
         // left
+        ctx.save();
         roundRect(ctx, photoX, photoY, halfW, photoH, 12);
         ctx.clip();
         ctx.filter = filterCss;
-        const left = loaded[0];
-        const lcov = cover(left.naturalWidth, left.naturalHeight, halfW, photoH);
-        ctx.drawImage(left, lcov.sx, lcov.sy, lcov.sw, lcov.sh, photoX, photoY, halfW, photoH);
+        const a = loaded[0];
+        const ac = cover(a.naturalWidth, a.naturalHeight, halfW, photoH);
+        ctx.drawImage(a, ac.sx, ac.sy, ac.sw, ac.sh, photoX, photoY, halfW, photoH);
         ctx.filter = "none";
         ctx.restore();
 
@@ -316,58 +316,21 @@ export default function Index() {
         roundRect(ctx, photoX + halfW + 8, photoY, halfW, photoH, 12);
         ctx.clip();
         ctx.filter = filterCss;
-        const right = loaded[1];
-        const rcov = cover(right.naturalWidth, right.naturalHeight, halfW, photoH);
-        ctx.drawImage(right, rcov.sx, rcov.sy, rcov.sw, rcov.sh, photoX + halfW + 8, photoY, halfW, photoH);
+        const b = loaded[1];
+        const bc = cover(b.naturalWidth, b.naturalHeight, halfW, photoH);
+        ctx.drawImage(b, bc.sx, bc.sy, bc.sw, bc.sh, photoX + halfW + 8, photoY, halfW, photoH);
         ctx.filter = "none";
         ctx.restore();
-      } else if (frameKey === "strip" && loaded.length >= 2) {
-        const h2 = (photoH - 8) / 2;
-        for (let i = 0; i < 2; i++) {
-          ctx.save();
-          roundRect(ctx, photoX, photoY + i * (h2 + 8), photoW, h2, 12);
-          ctx.clip();
-          ctx.filter = filterCss;
-          const im = loaded[i];
-          const cov = cover(im.naturalWidth, im.naturalHeight, photoW, h2);
-          ctx.drawImage(im, cov.sx, cov.sy, cov.sw, cov.sh, photoX, photoY + i * (h2 + 8), photoW, h2);
-          ctx.filter = "none";
-          ctx.restore();
-        }
       } else {
-        // default polaroid: if two images show side-by-side small, else full
-        if (loaded.length >= 2) {
-          const halfW = (photoW - 8) / 2;
-          ctx.save();
-          roundRect(ctx, photoX, photoY, halfW, photoH, 12);
-          ctx.clip();
-          ctx.filter = filterCss;
-          const a = loaded[0];
-          const ac = cover(a.naturalWidth, a.naturalHeight, halfW, photoH);
-          ctx.drawImage(a, ac.sx, ac.sy, ac.sw, ac.sh, photoX, photoY, halfW, photoH);
-          ctx.filter = "none";
-          ctx.restore();
-
-          ctx.save();
-          roundRect(ctx, photoX + halfW + 8, photoY, halfW, photoH, 12);
-          ctx.clip();
-          ctx.filter = filterCss;
-          const b = loaded[1];
-          const bc = cover(b.naturalWidth, b.naturalHeight, halfW, photoH);
-          ctx.drawImage(b, bc.sx, bc.sy, bc.sw, bc.sh, photoX + halfW + 8, photoY, halfW, photoH);
-          ctx.filter = "none";
-          ctx.restore();
-        } else {
-          ctx.save();
-          roundRect(ctx, photoX, photoY, photoW, photoH, 16);
-          ctx.clip();
-          ctx.filter = filterCss;
-          const a = loaded[0];
-          const ac = cover(a.naturalWidth, a.naturalHeight, photoW, photoH);
-          ctx.drawImage(a, ac.sx, ac.sy, ac.sw, ac.sh, photoX, photoY, photoW, photoH);
-          ctx.filter = "none";
-          ctx.restore();
-        }
+        ctx.save();
+        roundRect(ctx, photoX, photoY, photoW, photoH, 16);
+        ctx.clip();
+        ctx.filter = filterCss;
+        const a = loaded[0];
+        const ac = cover(a.naturalWidth, a.naturalHeight, photoW, photoH);
+        ctx.drawImage(a, ac.sx, ac.sy, ac.sw, ac.sh, photoX, photoY, photoW, photoH);
+        ctx.filter = "none";
+        ctx.restore();
       }
 
       // washi tape accents
