@@ -258,9 +258,9 @@ export default function Index() {
         }),
       );
 
-      // target export size
-      const W = 1080;
-      const H = 1350;
+      // target export size (fixed Polaroid frame)
+      const W = 1500;
+      const H = 1200;
       const canvas = document.createElement("canvas");
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
       canvas.width = Math.floor(W * dpr);
@@ -269,22 +269,22 @@ export default function Index() {
       if (!ctx) return null;
       ctx.scale(dpr, dpr);
 
-      // background
-      ctx.fillStyle = "hsl(var(--mood-bg))";
+      // background - warm vintage
+      ctx.fillStyle = "#efe6d6";
       ctx.fillRect(0, 0, W, H);
 
-      // paper
+      // polaroid paper (fixed size)
       ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.12)";
-      ctx.shadowBlur = 24;
+      ctx.shadowColor = "rgba(0,0,0,0.14)";
+      ctx.shadowBlur = 36;
       ctx.shadowOffsetY = 18;
       const pad = 40;
       const paperWidth = W - pad * 2;
       const paperHeight = H - pad * 2;
       const paperX = pad;
       const paperY = pad;
-      roundRect(ctx, paperX, paperY, paperWidth, paperHeight, 24);
-      ctx.fillStyle = "#fff8f2";
+      roundRect(ctx, paperX, paperY, paperWidth, paperHeight, 28);
+      ctx.fillStyle = "#f7efe2"; // warm paper
       ctx.fill();
       ctx.restore();
 
