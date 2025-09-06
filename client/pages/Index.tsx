@@ -388,7 +388,7 @@ export default function Index() {
       ctx.fillStyle = "#9B8C7B";
       ctx.textAlign = "right";
       ctx.font = "24px 'Caveat', 'Comic Sans MS', cursive";
-      ctx.fillText("MoodBooth.app", paperX + paperWidth - 24, paperY + paperHeight - 24);
+      ctx.fillText("Smile Booth", paperX + paperWidth - 24, paperY + paperHeight - 24);
 
       return canvas;
     } finally {
