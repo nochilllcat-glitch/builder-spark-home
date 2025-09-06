@@ -296,15 +296,6 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-[hsl(var(--mood-bg))] text-[hsl(var(--mood-ink))]">
       <div className="mx-auto max-w-md sm:max-w-lg md:max-w-2xl px-4 pb-28">
-        <header className="sticky top-0 z-20 -mx-4 mb-6 border-b bg-[hsl(var(--mood-bg))]/80 backdrop-blur supports-[backdrop-filter]:bg-[hsl(var(--mood-bg))]/60">
-          <div className="px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="inline-block h-6 w-6 rounded-md bg-[hsl(var(--mood-primary))] shadow-sm" />
-              <h1 className="font-display text-xl tracking-wider">MoodBooth</h1>
-            </div>
-            <span className="text-xs text-[hsl(var(--mood-muted-ink))]">spread joy ✿</span>
-          </div>
-        </header>
 
         <main className="space-y-4">
           {/* Camera / Preview panel */}
