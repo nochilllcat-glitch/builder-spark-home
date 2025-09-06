@@ -566,11 +566,11 @@ function PolaroidPreview({ images, frameKey, quote, filterCss }: { images: strin
           )}
         </div>
         <div className="pt-4">
-          <p className="font-typewriter text-[17px] leading-6 text-stone-800">
+          <p className="font-typewriter text-[17px] leading-6 text-[hsl(var(--mood-ink))]">
             “{quote}”
           </p>
           <div className="mt-2 text-right">
-            <span className="font-hand text-stone-500 text-base">MoodBooth.app</span>
+            <span className="font-hand text-[hsl(var(--mood-muted-ink))] text-base">Smile Booth</span>
           </div>
         </div>
       </div>
