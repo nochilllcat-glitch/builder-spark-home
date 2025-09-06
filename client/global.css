@@ -58,15 +58,15 @@
 
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* MoodBooth custom palette (HSL triplets) - vintage vibe */
-    --mood-bg: 38 30% 97%; /* warm cream */
-    --mood-ink: 30 18% 16%; /* deep brown */
-    --mood-muted-ink: 30 10% 44%; /* muted brown */
-    --mood-primary: 345 35% 60%; /* dusty rose */
-    --mood-secondary: 45 50% 66%; /* muted mustard */
-    --mood-secondary-ink: 40 18% 15%;
-    --mood-accent: 150 20% 48%; /* sage */
-    --mood-accent-ink: 150 12% 16%;
+    /* Smile Booth retro-red palette */
+    --mood-bg: 10 80% 96%; /* off-white warm */
+    --mood-ink: 10 40% 12%; /* deep auburn */
+    --mood-muted-ink: 10 30% 40%; /* muted auburn */
+    --mood-primary: 355 65% 45%; /* retro red */
+    --mood-secondary: 25 60% 60%; /* warm beige */
+    --mood-secondary-ink: 25 20% 18%;
+    --mood-accent: 5 50% 45%; /* terracotta */
+    --mood-accent-ink: 10 20% 14%;
 
     /* paper color for frames and panels */
     --paper: 40 90% 96%;
