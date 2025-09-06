@@ -223,6 +223,7 @@ export default function Index() {
 
   const retake = () => {
     setCapturedUrl(null);
+    setCapturedUrls([]);
     startCamera();
   };
 
