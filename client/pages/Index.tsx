@@ -481,7 +481,6 @@ export default function Index() {
             ) : (
               <PolaroidPreview
                 images={capturedUrls.length ? capturedUrls : capturedUrl ? [capturedUrl] : []}
-                frameKey={frameKey}
                 quote={quote}
                 filterCss={filterCss}
               />
