@@ -297,7 +297,7 @@ export default function Index() {
     <div className="min-h-screen bg-[hsl(var(--mood-bg))] text-[hsl(var(--mood-ink))]">
       <div className="mx-auto max-w-md sm:max-w-lg md:max-w-2xl px-4 pb-28">
 
-        <main className="space-y-4">
+        <main className="space-y-4 mt-4">
           {/* Camera / Preview panel */}
           <section className="rounded-2xl bg-white/70 shadow-lg ring-1 ring-black/5 p-3">
             {!active ? (
