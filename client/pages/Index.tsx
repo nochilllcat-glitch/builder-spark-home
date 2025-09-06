@@ -39,6 +39,9 @@ const FILTERS = [
   { key: "cool", label: "Cool", css: "contrast(1.05) saturate(1.1) hue-rotate(10deg)" },
   { key: "sepia", label: "Sepia", css: "sepia(0.5) contrast(1.05)" },
   { key: "mono", label: "B&W", css: "grayscale(1) contrast(1.05)" },
+  { key: "vintage", label: "Vintage", css: "sepia(0.6) saturate(0.9) contrast(1.05) brightness(0.95)" },
+  { key: "film", label: "Film", css: "contrast(1.1) saturate(1.05)" },
+  { key: "grainy", label: "Grainy", css: "contrast(1.05) saturate(0.95)" },
 ];
 
 export default function Index() {
@@ -52,8 +55,48 @@ export default function Index() {
   const [quote, setQuote] = useState<string>("");
   const [filterKey, setFilterKey] = useState<string>("none");
   const [facing, setFacing] = useState<"user" | "environment">("user");
+  const rawCapturedRef = useRef<string | null>(null);
+  const [autoRandomEffect, setAutoRandomEffect] = useState<boolean>(true);
 
   const filterCss = useMemo(() => FILTERS.find(f => f.key === filterKey)?.css || "none", [filterKey]);
+
+  const randomizeFilter = (excludeNone = true) => {
+    const choices = FILTERS.filter(f => (excludeNone ? f.key !== "none" : true));
+    const pick = choices[Math.floor(Math.random() * choices.length)];
+    setFilterKey(pick.key);
+  };
+
+  const applyFilterToRaw = async () => {
+    if (!rawCapturedRef.current) return;
+    try {
+      const img = new Image();
+      img.src = rawCapturedRef.current;
+      await img.decode();
+      const canvas = snapCanvasRef.current ?? document.createElement("canvas");
+      snapCanvasRef.current = canvas;
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.filter = filterCss;
+      ctx.drawImage(img, 0, 0, w, h);
+      ctx.filter = "none";
+      const url = canvas.toDataURL("image/jpeg", 0.9);
+      setCapturedUrl(url);
+    } catch (e) {
+      console.error("applyFilterToRaw error", e);
+    }
+  };
+
+  useEffect(() => {
+    // whenever filterKey changes and we have a raw capture, update displayed image
+    if (rawCapturedRef.current) {
+      applyFilterToRaw();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterKey]);
 
   useEffect(() => {
     randomizeQuote(category);
@@ -111,7 +154,12 @@ export default function Index() {
     ctx.drawImage(video, 0, 0, w, h);
     ctx.filter = "none";
     const url = canvas.toDataURL("image/jpeg", 0.9);
+    rawCapturedRef.current = url; // keep original raw capture
     setCapturedUrl(url);
+    if (autoRandomEffect) {
+      // delay randomize a tick so state updates happen in order
+      setTimeout(() => randomizeFilter(true), 20);
+    }
     stopCamera();
   };
 
@@ -131,7 +179,12 @@ export default function Index() {
     ctx.drawImage(img, 0, 0);
     ctx.filter = "none";
     const url = canvas.toDataURL("image/jpeg", 0.9);
+    rawCapturedRef.current = url; // keep original raw capture
     setCapturedUrl(url);
+    if (autoRandomEffect) {
+      // delay randomize a tick so state updates happen in order
+      setTimeout(() => randomizeFilter(true), 20);
+    }
     stopCamera();
   };
 
@@ -368,7 +421,7 @@ export default function Index() {
 
               <div className="col-span-2 flex items-center gap-2">
                 <label className="text-xs text-[hsl(var(--mood-muted-ink))]">Filter</label>
-                <div className="flex gap-2 overflow-x-auto">
+                <div className="flex gap-2 overflow-x-auto items-center">
                   {FILTERS.map((f) => (
                     <button
                       key={f.key}
@@ -380,6 +433,16 @@ export default function Index() {
                       {f.label}
                     </button>
                   ))}
+                  <button
+                    onClick={() => randomizeFilter(true)}
+                    className="rounded-full px-3 py-1 text-xs bg-[hsl(var(--mood-accent))] text-[hsl(var(--mood-accent-ink))] shadow-sm"
+                  >
+                    Random
+                  </button>
+                  <label className="ml-2 inline-flex items-center gap-2 text-xs text-[hsl(var(--mood-muted-ink))]">
+                    <input type="checkbox" checked={autoRandomEffect} onChange={(e) => setAutoRandomEffect(e.target.checked)} className="h-4 w-4" />
+                    Auto
+                  </label>
                 </div>
               </div>
 
