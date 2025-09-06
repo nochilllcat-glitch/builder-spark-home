@@ -262,9 +262,9 @@ export default function Index() {
         }),
       );
 
-      // target export size (fixed Polaroid frame)
-      const W = 1500;
-      const H = 1200;
+      // target export size (portrait Polaroid frame)
+      const W = 1200;
+      const H = 1500;
       const canvas = document.createElement("canvas");
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
       canvas.width = Math.floor(W * dpr);
@@ -273,8 +273,8 @@ export default function Index() {
       if (!ctx) return null;
       ctx.scale(dpr, dpr);
 
-      // background - warm vintage
-      ctx.fillStyle = "#efe6d6";
+      // background - retro red/off-white
+      ctx.fillStyle = "hsl(var(--mood-bg))";
       ctx.fillRect(0, 0, W, H);
 
       // polaroid paper (fixed size)
@@ -288,7 +288,7 @@ export default function Index() {
       const paperX = pad;
       const paperY = pad;
       roundRect(ctx, paperX, paperY, paperWidth, paperHeight, 28);
-      ctx.fillStyle = "#f7efe2"; // warm paper
+      ctx.fillStyle = "hsl(var(--paper))"; // paper color
       ctx.fill();
       ctx.restore();
 
