@@ -85,6 +85,11 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      fontFamily: {
+        display: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        hand: ["Caveat", "ui-serif", "Georgia", "serif"],
+        typewriter: ["Special Elite", "Courier New", "monospace"],
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
