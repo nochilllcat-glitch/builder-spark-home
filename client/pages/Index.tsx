@@ -451,7 +451,7 @@ export default function Index() {
           </section>
 
           {/* Controls */}
-          <section className="rounded-2xl bg-white/70 shadow-lg ring-1 ring-black/5 p-4">
+          <section className="rounded-2xl bg-[hsl(var(--paper))] shadow-lg ring-1 ring-black/5 p-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="col-span-2 flex items-center justify-between gap-2">
                 <p className="text-xs text-[hsl(var(--mood-muted-ink))]">Quotes are randomly selected for you — feel the good vibes ✿</p>
