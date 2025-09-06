@@ -399,7 +399,7 @@ export default function Index() {
 
         <main className="space-y-4 mt-4">
           {/* Camera / Preview panel */}
-          <section className="rounded-2xl bg-white/70 shadow-lg ring-1 ring-black/5 p-3">
+          <section className="rounded-2xl bg-[hsl(var(--paper))] shadow-lg ring-1 ring-black/5 p-3">
             {!active ? (
               <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-pink-50 to-violet-50 aspect-[3/4] flex items-center justify-center">
                 {hasCamera ? (
