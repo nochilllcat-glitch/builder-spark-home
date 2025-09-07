@@ -518,7 +518,7 @@ export default function Index() {
       <div className="mx-auto max-w-md sm:max-w-lg md:max-w-2xl px-4 pb-28">
 
         <main className="space-y-4 mt-4">
-          <section className="rounded-2xl bg-[hsl(var(--paper))] shadow-lg ring-1 ring-black/5 p-3">
+          <section className="rounded-2xl bg-[hsl(var(--paper))] shadow-lg ring-1 ring-black/5 p-3 printing-pop">
             {(!active || isCapturing) ? (
               <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-pink-50 to-violet-50 aspect-[3/4] flex items-center justify-center">
                 {hasCamera ? (
