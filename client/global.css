@@ -58,18 +58,21 @@
 
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Smile Booth retro-red palette */
-    --mood-bg: 10 80% 96%; /* off-white warm */
-    --mood-ink: 10 40% 12%; /* deep auburn */
-    --mood-muted-ink: 10 30% 40%; /* muted auburn */
-    --mood-primary: 355 65% 45%; /* retro red */
-    --mood-secondary: 25 60% 60%; /* warm beige */
-    --mood-secondary-ink: 25 20% 18%;
-    --mood-accent: 5 50% 45%; /* terracotta */
-    --mood-accent-ink: 10 20% 14%;
+    /* Smile Booth cute pastel palette */
+    --mood-bg: 310 40% 98%; /* soft pink cream */
+    --mood-ink: 280 18% 12%; /* deep plum for text */
+    --mood-muted-ink: 280 12% 40%; /* muted plum */
+    --mood-primary: 320 70% 75%; /* pastel pink */
+    --mood-secondary: 195 60% 85%; /* mint */
+    --mood-secondary-ink: 195 30% 30%;
+    --mood-accent: 45 90% 80%; /* soft lemon */
+    --mood-accent-ink: 45 50% 20%;
 
     /* paper color for frames and panels */
-    --paper: 40 90% 96%;
+    --paper: 40 90% 98%;
+
+    /* cute utilities */
+    --cute-shadow: 0 10px 30px rgba(252, 211, 238, 0.12);
   }
 
   .dark {
