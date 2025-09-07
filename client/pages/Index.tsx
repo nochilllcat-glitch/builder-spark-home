@@ -451,12 +451,17 @@ export default function Index() {
       // subtle grain overlay on photo area
       drawGrain(ctx, photoX, photoY, photoW, photoH, 0.06);
 
-      // draw a larger watermark inside the bottom frame (left side)
+      // small emoji watermark inside the bottom frame (left side)
       const bottomIndex = rows - 1;
       const bottomDy = photoY + bottomIndex * (cellH + gap);
       const wmLeft = photoX + 12;
       const wmBottom = bottomDy + cellH - 12;
-      drawCuteWatermarkLeft(ctx, wmLeft, wmBottom, Math.min(96, Math.round(cellH * 0.9)));
+      ctx.save();
+      const emojiSize = Math.min(48, Math.round(cellH * 0.28));
+      ctx.font = `${emojiSize}px sans-serif`;
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('😊', wmLeft, wmBottom);
+      ctx.restore();
 
       // small text watermark on paper corner
       ctx.fillStyle = '#9B8C7B';
