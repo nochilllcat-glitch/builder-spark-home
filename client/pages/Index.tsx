@@ -357,8 +357,8 @@ export default function Index() {
         }),
       );
 
-      // ensure we draw top-to-bottom with first captured at bottom -> reverse
-      const loadedOrdered = loaded.slice().reverse();
+      // ensure we draw top-to-bottom in capture order (first captured -> top)
+      const loadedOrdered = loaded.slice();
 
       const W = 1200;
       const H = 1500;
