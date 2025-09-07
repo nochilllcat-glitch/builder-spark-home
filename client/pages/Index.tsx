@@ -204,8 +204,18 @@ export default function Index() {
     if (!videoRef.current) return;
     setIsCapturing(true);
     setCapturedUrls([]);
-    // 3 photos with 3-second countdown each -> ~9s
+    const prepTexts = [
+      'Get ready for your first photo!',
+      'Get ready for your second photo!',
+      'Get ready for your third photo!',
+    ];
+    // 3 photos with prep message (1.7s) + 3-second countdown each -> ~13s
     for (let i = 0; i < 3; i++) {
+      setPrepMessage(prepTexts[i]);
+      // show prep for ~1.7s
+      await sleep(1700);
+      setPrepMessage(null);
+      // countdown 3..1
       for (let c = 3; c >= 1; c--) {
         setCountdown(c);
         await sleep(1000);
@@ -214,13 +224,14 @@ export default function Index() {
       const url = await captureOnce();
       if (url) {
         rawCapturedRef.current = url;
-        // preserve capture order: first captured at index 0 (will be drawn at bottom)
+        // preserve capture order: first captured at index 0 (top)
         setCapturedUrls(prev => [...prev, url]);
         setCapturedUrl(url);
       }
       // short pause between photos
       await sleep(300);
     }
+    setPrepMessage(null);
     setIsCapturing(false);
     stopCamera();
     setTimeout(() => randomizeFilter(true), 20);
