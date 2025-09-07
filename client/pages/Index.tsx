@@ -606,17 +606,13 @@ function PolaroidPreview({ images, filterCss }: { images: string[]; filterCss: s
             <div className="flex flex-col gap-6 h-full w-full">
               {display.map((src, idx) => {
                 const isVisible = !!visible[idx];
+                const transform = isVisible ? 'translateY(0) scale(1) rotate(0deg)' : 'translateY(-40px) scale(1.06) rotate(-6deg)';
+                const box = isVisible ? '0 14px 30px rgba(0,0,0,0.12)' : 'none';
                 return (
-                  <div key={idx} className="h-1/3 w-full rounded-sm overflow-hidden border bg-white relative" style={{transform: isVisible ? 'translateY(0)' : 'translateY(-30px)', opacity: isVisible ? 1 : 0, transition: 'transform 550ms cubic-bezier(.2,.8,.2,1), opacity 400ms ease'}}>
+                  <div key={idx} className="h-1/3 w-full rounded-sm overflow-hidden border bg-white relative" style={{transform, opacity: isVisible ? 1 : 0, transition: 'transform 550ms cubic-bezier(.2,.8,.2,1), opacity 400ms ease', boxShadow: box}}>
                     <img src={src} className="h-full w-full object-cover" style={{ filter: filterCss }} alt={`p${idx}`} />
                     {idx === display.length - 1 && (
-                      <div style={{ position: 'absolute', left: 8, bottom: 8, opacity: 0.95 }}>
-                        <svg width="72" height="52" viewBox="0 0 72 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect x="2" y="6" width="64" height="34" rx="6" fill="#F2C94C" />
-                          <circle cx="20" cy="22" r="4" fill="#fff" />
-                          <circle cx="36" cy="22" r="4" fill="#fff" />
-                        </svg>
-                      </div>
+                      <div style={{ position: 'absolute', left: 8, bottom: 8, opacity: 0.95, fontSize: 20 }}>😊</div>
                     )}
                   </div>
                 );
