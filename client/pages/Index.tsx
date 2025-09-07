@@ -593,21 +593,25 @@ function PolaroidPreview({ images, filterCss }: { images: string[]; filterCss: s
   const imgs = images.slice(0, 3);
   const display = imgs.slice().reverse(); // draw top-to-bottom where last captured is top
   return (
-    <div className="relative mx-auto w-full max-w-md">
-      <div className="relative rounded-2xl bg-[hsl(var(--paper))] p-4 shadow-xl" style={{ maxWidth: 420 }}>
-        <div className="relative overflow-hidden rounded-md border border-black/5 p-3 bg-[hsl(var(--paper))]">
-          <div className="w-full bg-[hsl(var(--paper))] flex items-center justify-center" style={{height: '420px'}}>
+    <div className="relative mx-auto w-full" style={{maxWidth: 240}}>
+      <div className="relative rounded-2xl bg-[hsl(var(--paper))] p-4 shadow-xl" style={{ width: 220 }}>
+        <div className="relative overflow-hidden rounded-md border border-black/5 p-2 bg-[hsl(var(--paper))]">
+          <div className="w-full bg-[hsl(var(--paper))] flex items-center justify-center" style={{height: 620}}>
             {display.length >= 3 ? (
-              <div className="flex flex-col gap-2 h-full w-full">
-                <img src={display[0]} className="h-1/3 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="one" />
-                <img src={display[1]} className="h-1/3 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="two" />
-                <div className="relative h-1/3 w-full">
-                  <img src={display[2]} className="absolute inset-0 h-full w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="three" />
-                  <div style={{ position: 'absolute', left: 10, bottom: 8, opacity: 0.95 }}>
-                    <svg width="68" height="48" viewBox="0 0 68 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="2" y="6" width="56" height="28" rx="6" fill="#F2C94C" />
-                      <circle cx="18" cy="20" r="3.6" fill="#fff" />
-                      <circle cx="36" cy="20" r="3.6" fill="#fff" />
+              <div className="flex flex-col gap-6 h-full w-full">
+                <div className="h-1/3 w-full rounded-sm overflow-hidden border bg-white">
+                  <img src={display[0]} className="h-full w-full object-cover" style={{ filter: filterCss }} alt="one" />
+                </div>
+                <div className="h-1/3 w-full rounded-sm overflow-hidden border bg-white">
+                  <img src={display[1]} className="h-full w-full object-cover" style={{ filter: filterCss }} alt="two" />
+                </div>
+                <div className="h-1/3 w-full rounded-sm overflow-hidden border bg-white relative">
+                  <img src={display[2]} className="h-full w-full object-cover" style={{ filter: filterCss }} alt="three" />
+                  <div style={{ position: 'absolute', left: 8, bottom: 8, opacity: 0.95 }}>
+                    <svg width="72" height="52" viewBox="0 0 72 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="2" y="6" width="64" height="34" rx="6" fill="#F2C94C" />
+                      <circle cx="20" cy="22" r="4" fill="#fff" />
+                      <circle cx="36" cy="22" r="4" fill="#fff" />
                     </svg>
                   </div>
                 </div>
