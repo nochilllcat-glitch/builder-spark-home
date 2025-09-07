@@ -111,7 +111,6 @@ export default function Index() {
   useEffect(() => {
     const onVisibility = () => {
       if (document.visibilityState === 'visible') {
-        // if page becomes visible and there's no active stream but camera is available, restart
         if (!streamRef.current && !capturedUrl && !capturedUrls.length) {
           startCamera();
         }
@@ -158,24 +157,18 @@ export default function Index() {
       const track = streamRef.current?.getVideoTracks()[0];
       if (!track) return;
       const capabilities: any = track.getCapabilities?.();
-      const settings: any = track.getSettings?.();
-      // If the device supports focusMode, try to trigger a single-shot focus
       if (capabilities && capabilities.focusMode) {
         const modes = capabilities.focusMode;
         const mode = modes.includes('single-shot') ? 'single-shot' : (modes.includes('continuous') ? 'continuous' : modes[0]);
         await track.applyConstraints({ advanced: [{ focusMode: mode }] } as any);
       }
-
-      // Try points of interest if available (best-effort; not widely supported)
       if (clientX != null && clientY != null && capabilities && (capabilities.pointsOfInterest || capabilities.pointOfInterest)) {
-        const video = videoRef.current!
+        const video = videoRef.current!;
         const rect = video.getBoundingClientRect();
         const nx = (clientX - rect.left) / rect.width;
         const ny = (clientY - rect.top) / rect.height;
         await track.applyConstraints({ advanced: [{ pointsOfInterest: [{ x: nx, y: ny }] }] } as any);
       }
-
-      // Fallback: if focusDistance is adjustable, nudge it a bit
       if (capabilities && typeof capabilities.focusDistance !== 'undefined') {
         const min = capabilities.focusDistance.min || 0;
         const max = capabilities.focusDistance.max || 0;
@@ -183,8 +176,7 @@ export default function Index() {
         await track.applyConstraints({ advanced: [{ focusDistance: val }] } as any);
       }
     } catch (e) {
-      // Not all devices/browsers support these constraints — silently ignore
-      // console.debug('focus attempt failed', e);
+      // ignore unsupported
     }
   };
 
@@ -212,7 +204,7 @@ export default function Index() {
     if (!videoRef.current) return;
     setIsCapturing(true);
     setCapturedUrls([]);
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 3; i++) {
       for (let c = 3; c >= 1; c--) {
         setCountdown(c);
         await sleep(700);
@@ -296,7 +288,6 @@ export default function Index() {
   function getCssHslVar(varName: string) {
     const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
     if (!raw) return null;
-    // raw is like: "10 80% 96%" -> build hsl(...) string
     return `hsl(${raw})`;
   }
 
@@ -310,6 +301,49 @@ export default function Index() {
     const destY = dy + (dh - destH) / 2;
     ctx.drawImage(img, 0, 0, sw, sh, destX, destY, destW, destH);
   }
+
+  function cover(sw: number, sh: number, dw: number, dh: number) {
+    const sRatio = sw / sh;
+    const dRatio = dw / dh;
+    let sx = 0, sy = 0, cw = sw, ch = sh;
+    if (sRatio > dRatio) {
+      ch = sh;
+      cw = sh * dRatio;
+      sx = (sw - cw) / 2;
+      sy = 0;
+    } else {
+      cw = sw;
+      ch = sw / dRatio;
+      sx = 0;
+      sy = (sh - ch) / 2;
+    }
+    return { sx, sy, sw: cw, sh: ch };
+  }
+
+  const drawCuteWatermark = (ctx: CanvasRenderingContext2D, x: number, y: number, size = 48) => {
+    ctx.save();
+    ctx.globalAlpha = 0.75;
+    // simple cute controller-like icon: rounded rectangle with two circles
+    ctx.fillStyle = '#F2C94C';
+    const w = size;
+    const h = size * 0.65;
+    roundRect(ctx, x - w, y - h, w, h, 8);
+    ctx.fill();
+    // buttons
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x - w + w * 0.28, y - h + h * 0.4, size * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x - w + w * 0.7, y - h + h * 0.4, size * 0.08, 0, Math.PI * 2);
+    ctx.fill();
+    // smiley on the right
+    ctx.beginPath();
+    ctx.fillStyle = '#ffffff';
+    ctx.arc(x - w * 0.38, y - h * 0.52, size * 0.12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  };
 
   const composePolaroid = async () => {
     const imgs = capturedUrls.length ? capturedUrls : capturedUrl ? [capturedUrl] : [];
@@ -336,9 +370,8 @@ export default function Index() {
       ctx.scale(dpr, dpr);
 
       const paperColor = getCssHslVar('--paper') || '#ffffff';
-      const moodInk = getCssHslVar('--mood-ink') || '#3C2A21';
 
-      // canvas background should match paper (keep export simple and white)
+      // white paper background
       ctx.fillStyle = paperColor;
       ctx.fillRect(0, 0, W, H);
 
@@ -357,65 +390,43 @@ export default function Index() {
       ctx.fill();
       ctx.restore();
 
-      // layout photos inside the Polaroid area
+      // layout photos inside the Polaroid area as 3 stacked rows
       const innerPadX = 48;
       const innerPadTop = 56;
-      const innerPadBottom = 220;
+      const innerPadBottom = 120; // reduce bottom to allow watermark space
       const photoX = paperX + innerPadX;
       const photoY = paperY + innerPadTop;
       const photoW = paperWidth - innerPadX * 2;
       const photoH = paperHeight - innerPadTop - innerPadBottom;
 
+      const gap = 8;
+      const rows = Math.min(3, loaded.length);
+      const cellH = Math.floor((photoH - gap * (rows - 1)) / rows);
+
       ctx.save();
-      if (loaded.length >= 2) {
-        const halfW = (photoW - 8) / 2;
-        // left
-        ctx.save();
-        roundRect(ctx, photoX, photoY, halfW, photoH, 12);
+      ctx.filter = filterCss;
+      for (let i = 0; i < rows; i++) {
+        const dy = photoY + i * (cellH + gap);
+        roundRect(ctx, photoX, dy, photoW, cellH, 12);
         ctx.clip();
-        ctx.filter = filterCss;
-        containDraw(ctx, loaded[0], photoX, photoY, halfW, photoH);
-        ctx.filter = "none";
+        // use cover so image fills the frame and is cropped to frame
+        const img = loaded[i];
+        const c = cover(img.naturalWidth, img.naturalHeight, photoW, cellH);
+        ctx.drawImage(img, c.sx, c.sy, c.sw, c.sh, photoX, dy, photoW, cellH);
+        // restore clip between iterations
         ctx.restore();
-
-        // right
         ctx.save();
-        roundRect(ctx, photoX + halfW + 8, photoY, halfW, photoH, 12);
-        ctx.clip();
-        ctx.filter = filterCss;
-        containDraw(ctx, loaded[1], photoX + halfW + 8, photoY, halfW, photoH);
-        ctx.filter = "none";
-        ctx.restore();
-      } else {
-        ctx.save();
-        roundRect(ctx, photoX, photoY, photoW, photoH, 16);
-        ctx.clip();
-        ctx.filter = filterCss;
-        containDraw(ctx, loaded[0], photoX, photoY, photoW, photoH);
-        ctx.filter = "none";
-        ctx.restore();
       }
+      ctx.filter = "none";
       ctx.restore();
-
-      // quote
-      const quoteX = paperX + 56;
-      const quoteY = paperY + paperHeight - innerPadBottom + 56;
-      const quoteMaxWidth = paperWidth - 112;
-      await (document as any).fonts?.ready?.catch?.(() => {});
-      ctx.fillStyle = moodInk;
-      ctx.textAlign = "center";
-      ctx.font = "36px 'Special Elite', 'Courier New', monospace";
-      const qx = paperX + paperWidth / 2; // center x
-      wrapText(ctx, `\u201C${quote}\u201D`, qx, quoteY, quoteMaxWidth, 44);
 
       // subtle grain overlay on photo area
       drawGrain(ctx, photoX, photoY, photoW, photoH, 0.06);
 
-      // watermark
-      ctx.fillStyle = "#9B8C7B";
-      ctx.textAlign = "right";
-      ctx.font = "24px 'Caveat', 'Comic Sans MS', cursive";
-      ctx.fillText("Smile Booth", paperX + paperWidth - 24, paperY + paperHeight - 24);
+      // small cute watermark at bottom-right of paper (not covering photos)
+      const wmX = paperX + paperWidth - 24;
+      const wmY = paperY + paperHeight - 24;
+      drawCuteWatermark(ctx, wmX, wmY, 64);
 
       return canvas;
     } finally {
@@ -471,7 +482,6 @@ export default function Index() {
                       playsInline
                       muted
                       onClick={(e) => {
-                        // try to focus on tap
                         attemptFocus(e.clientX, e.clientY);
                       }}
                       className="h-full w-full object-cover"
@@ -515,7 +525,6 @@ export default function Index() {
             ) : (
               <PolaroidPreview
                 images={capturedUrls.length ? capturedUrls : capturedUrl ? [capturedUrl] : []}
-                quote={quote}
                 filterCss={filterCss}
               />
             )}
@@ -524,7 +533,7 @@ export default function Index() {
           <section className="rounded-2xl bg-[hsl(var(--paper))] shadow-lg ring-1 ring-black/5 p-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="col-span-2 flex items-center justify-between gap-2">
-                <p className="text-xs text-[hsl(var(--mood-muted-ink))]">Quotes are randomly selected for you — feel the good vibes ✿</p>
+                <p className="text-xs text-[hsl(var(--mood-muted-ink))]">Capture three quick shots — say cheese! ✿</p>
                 <div />
               </div>
 
@@ -551,16 +560,20 @@ export default function Index() {
   );
 }
 
-function PolaroidPreview({ images, quote, filterCss }: { images: string[]; quote: string; filterCss: string }) {
-  const imgs = images.slice(0,2);
+function PolaroidPreview({ images, filterCss }: { images: string[]; filterCss: string }) {
+  const imgs = images.slice(0,3);
   return (
     <div className="relative mx-auto w-full max-w-md">
       <div className="relative rounded-2xl bg-[hsl(var(--paper))] p-4 shadow-xl" style={{ maxWidth: 420 }}>
-        <div className="absolute -top-3 left-8 h-6 w-32 rotate-[-6deg] rounded bg-[#E8D7C2] shadow" />
-        <div className="absolute -top-4 right-10 h-6 w-28 rotate-[8deg] rounded bg-[#D8E7D6] shadow" />
         <div className="relative overflow-hidden rounded-md border border-black/5 p-3 bg-[hsl(var(--paper))]">
           <div className="w-full bg-[hsl(var(--paper))] flex items-center justify-center" style={{height: '420px'}}>
-            {imgs.length === 2 ? (
+            {imgs.length >= 3 ? (
+              <div className="flex flex-col gap-2 h-full w-full">
+                <img src={imgs[0]} className="h-1/3 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="one" />
+                <img src={imgs[1]} className="h-1/3 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="two" />
+                <img src={imgs[2]} className="h-1/3 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="three" />
+              </div>
+            ) : imgs.length === 2 ? (
               <div className="flex flex-col gap-2 h-full w-full">
                 <img src={imgs[0]} className="h-1/2 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="top" />
                 <img src={imgs[1]} className="h-1/2 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="bottom" />
@@ -572,12 +585,17 @@ function PolaroidPreview({ images, quote, filterCss }: { images: string[]; quote
           </div>
         </div>
         <div className="pt-4">
-          <p className="font-typewriter text-[17px] leading-6 text-[hsl(var(--mood-ink))] text-center">
-            “{quote}”
-          </p>
           <div className="mt-2 text-right">
-            <span className="font-hand text-[hsl(var(--mood-muted-ink))] text-base">Smile Booth</span>
+            <span className="font-hand text-[hsl(var(--mood-muted-ink))] text-sm">Smile Booth</span>
           </div>
+        </div>
+        {/* small preview watermark */}
+        <div style={{ position: 'absolute', right: 12, bottom: 12, opacity: 0.85 }}>
+          <svg width="42" height="28" viewBox="0 0 42 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="6" width="36" height="16" rx="4" fill="#F2C94C" />
+            <circle cx="12" cy="14" r="2.4" fill="#fff" />
+            <circle cx="24" cy="14" r="2.4" fill="#fff" />
+          </svg>
         </div>
       </div>
     </div>
@@ -611,38 +629,6 @@ function cover(sw: number, sh: number, dw: number, dh: number) {
     sy = (sh - ch) / 2;
   }
   return { sx, sy, sw: cw, sh: ch };
-}
-
-function drawTape(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  color: string,
-  radius = 6,
-  rotation = 0,
-) {
-  ctx.save();
-  ctx.translate(x + w / 2, y + h / 2);
-  ctx.rotate((rotation * Math.PI) / 180);
-  ctx.translate(-w / 2, -h / 2);
-  const rx = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(rx, 0);
-  ctx.lineTo(w - rx, 0);
-  ctx.quadraticCurveTo(w, 0, w, rx);
-  ctx.lineTo(w, h - rx);
-  ctx.quadraticCurveTo(w, h, w - rx, h);
-  ctx.lineTo(rx, h);
-  ctx.quadraticCurveTo(0, h, 0, h - rx);
-  ctx.lineTo(0, rx);
-  ctx.quadraticCurveTo(0, 0, rx, 0);
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.globalAlpha = 0.9;
-  ctx.fill();
-  ctx.restore();
 }
 
 function drawGrain(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, intensity = 0.05) {
