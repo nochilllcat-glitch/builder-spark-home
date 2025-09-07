@@ -437,7 +437,7 @@ export default function Index() {
       // small emoji watermark inside the bottom frame (left side)
       const bottomIndex = rows - 1;
       const bottomDy = photoY + bottomIndex * (cellH + gap);
-      const wmLeft = photoX + 12;
+      const wmLeft = photoX + offsetX + 12;
       const wmBottom = bottomDy + cellH - 12;
       ctx.save();
       const emojiSize = Math.min(48, Math.round(cellH * 0.28));
@@ -446,11 +446,14 @@ export default function Index() {
       ctx.fillText('😊', wmLeft, wmBottom);
       ctx.restore();
 
-      // small text watermark on paper corner
-      ctx.fillStyle = '#9B8C7B';
-      ctx.textAlign = 'right';
-      ctx.font = "20px 'Caveat', cursive";
-      ctx.fillText('Smile Booth', paperX + paperWidth - 24, paperY + paperHeight - 24);
+      // date label (handwritten style) centered at bottom of the paper
+      const dateText = new Date().toLocaleDateString();
+      ctx.fillStyle = '#3C2A21';
+      ctx.textAlign = 'center';
+      ctx.font = "36px 'Caveat', cursive";
+      const dateX = paperX + paperWidth / 2;
+      const dateY = paperY + paperHeight - 36;
+      ctx.fillText(dateText, dateX, dateY);
 
       return canvas;
     } finally {
