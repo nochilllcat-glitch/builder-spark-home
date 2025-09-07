@@ -226,24 +226,32 @@ export default function Index() {
   };
 
   const onUpload = async (file: File) => {
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    await img.decode();
-    const canvas = snapCanvasRef.current ?? document.createElement("canvas");
-    snapCanvasRef.current = canvas;
-    const w = img.naturalWidth;
-    const h = img.naturalHeight;
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.filter = filterCss;
-    ctx.drawImage(img, 0, 0);
-    ctx.filter = "none";
-    const url = canvas.toDataURL("image/jpeg", 0.9);
-    rawCapturedRef.current = url;
-    setCapturedUrl(url);
-    setCapturedUrls([url]);
+    // keep single-file compatibility: delegate to handler
+    await handleUploadFiles(file ? [file] as any : null);
+  };
+
+  const handleUploadFiles = async (files: FileList | File[] | null) => {
+    if (!files) return;
+    const arr = Array.from(files).slice(0, 3);
+    const urls: string[] = [];
+    for (const f of arr) {
+      const dataUrl = await new Promise<string | null>((res) => {
+        const reader = new FileReader();
+        reader.onload = () => res(typeof reader.result === 'string' ? reader.result : null);
+        reader.onerror = () => res(null);
+        reader.readAsDataURL(f);
+      });
+      if (!dataUrl) continue;
+      // ensure image can decode
+      const img = new Image();
+      img.src = dataUrl;
+      try { await img.decode(); } catch (_) {}
+      urls.push(dataUrl);
+    }
+    if (!urls.length) return;
+    rawCapturedRef.current = urls[0];
+    setCapturedUrl(urls[0]);
+    setCapturedUrls(urls);
     setTimeout(() => randomizeFilter(true), 20);
     stopCamera();
   };
@@ -538,9 +546,10 @@ export default function Index() {
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={(e) => e.target.files && onUpload(e.target.files[0])}
+                        multiple
+                        onChange={(e) => handleUploadFiles(e.target.files)}
                       />
-                      Upload
+                      Upload (up to 3)
                     </label>
                   </div>
                   <button
@@ -589,41 +598,53 @@ export default function Index() {
 }
 
 function PolaroidPreview({ images, filterCss }: { images: string[]; filterCss: string }) {
-  // show up to 3 images, arranged bottom-to-top: first captured at bottom
-  const imgs = images.slice(0, 3);
-  const display = imgs.slice().reverse(); // draw top-to-bottom where last captured is top
+  const imgs = images.slice(0,3);
+  // display order: top-to-bottom where first captured is top
+  const display = imgs.slice();
+  const [visible, setVisible] = useState<boolean[]>([]);
+
+  useEffect(() => {
+    // animate entries when images change
+    setVisible([]);
+    const timers: number[] = [];
+    display.forEach((_, i) => {
+      const t = window.setTimeout(() => {
+        setVisible(v => {
+          const nv = v.slice();
+          nv[i] = true;
+          return nv;
+        });
+      }, 400 * i);
+      timers.push(t);
+    });
+    return () => timers.forEach(t => clearTimeout(t));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images.join("|")]);
+
   return (
     <div className="relative mx-auto w-full" style={{maxWidth: 240}}>
       <div className="relative rounded-2xl bg-[hsl(var(--paper))] p-4 shadow-xl" style={{ width: 220 }}>
         <div className="relative overflow-hidden rounded-md border border-black/5 p-2 bg-[hsl(var(--paper))]">
           <div className="w-full bg-[hsl(var(--paper))] flex items-center justify-center" style={{height: 620}}>
-            {display.length >= 3 ? (
-              <div className="flex flex-col gap-6 h-full w-full">
-                <div className="h-1/3 w-full rounded-sm overflow-hidden border bg-white">
-                  <img src={display[0]} className="h-full w-full object-cover" style={{ filter: filterCss }} alt="one" />
-                </div>
-                <div className="h-1/3 w-full rounded-sm overflow-hidden border bg-white">
-                  <img src={display[1]} className="h-full w-full object-cover" style={{ filter: filterCss }} alt="two" />
-                </div>
-                <div className="h-1/3 w-full rounded-sm overflow-hidden border bg-white relative">
-                  <img src={display[2]} className="h-full w-full object-cover" style={{ filter: filterCss }} alt="three" />
-                  <div style={{ position: 'absolute', left: 8, bottom: 8, opacity: 0.95 }}>
-                    <svg width="72" height="52" viewBox="0 0 72 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="2" y="6" width="64" height="34" rx="6" fill="#F2C94C" />
-                      <circle cx="20" cy="22" r="4" fill="#fff" />
-                      <circle cx="36" cy="22" r="4" fill="#fff" />
-                    </svg>
+            <div className="flex flex-col gap-6 h-full w-full">
+              {display.map((src, idx) => {
+                const isVisible = !!visible[idx];
+                return (
+                  <div key={idx} className="h-1/3 w-full rounded-sm overflow-hidden border bg-white relative" style={{transform: isVisible ? 'translateY(0)' : 'translateY(-30px)', opacity: isVisible ? 1 : 0, transition: 'transform 550ms cubic-bezier(.2,.8,.2,1), opacity 400ms ease'}}>
+                    <img src={src} className="h-full w-full object-cover" style={{ filter: filterCss }} alt={`p${idx}`} />
+                    {idx === display.length - 1 && (
+                      <div style={{ position: 'absolute', left: 8, bottom: 8, opacity: 0.95 }}>
+                        <svg width="72" height="52" viewBox="0 0 72 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="2" y="6" width="64" height="34" rx="6" fill="#F2C94C" />
+                          <circle cx="20" cy="22" r="4" fill="#fff" />
+                          <circle cx="36" cy="22" r="4" fill="#fff" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </div>
-            ) : display.length === 2 ? (
-              <div className="flex flex-col gap-2 h-full w-full">
-                <img src={display[0]} className="h-1/2 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="top" />
-                <img src={display[1]} className="h-1/2 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="bottom" />
-              </div>
-            ) : (
-              <img src={display[0]} className="h-full w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="single" />
-            )}
+                );
+              })}
+            </div>
             <div className="grain-overlay" />
           </div>
         </div>
