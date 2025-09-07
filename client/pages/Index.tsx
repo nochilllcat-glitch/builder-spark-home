@@ -416,7 +416,14 @@ export default function Index() {
         // draw image cropped to cell using cover while maintaining 3:4 aspect
         const img = loadedOrdered[i];
         const c = cover(img.naturalWidth, img.naturalHeight, cellW, cellH);
+        // apply visual filter (same as preview) so export matches preview
+        try {
+          ctx.filter = filterCss || 'none';
+        } catch (e) {
+          ctx.filter = 'none';
+        }
         ctx.drawImage(img, c.sx, c.sy, c.sw, c.sh, dx, dy, cellW, cellH);
+        ctx.filter = 'none';
 
         ctx.restore();
       }
