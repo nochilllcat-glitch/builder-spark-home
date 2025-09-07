@@ -340,8 +340,9 @@ export default function Index() {
       // ensure we draw top-to-bottom in capture order (first captured -> top)
       const loadedOrdered = loaded.slice();
 
-      const W = 1200;
-      const H = 1500;
+      // Output size tuned for vertical poster: enforce width and tall height to fit three 3:4 images stacked
+      const W = 900; // output width in px
+      const H = 3200; // output height in px
       const canvas = document.createElement("canvas");
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
       canvas.width = Math.floor(W * dpr);
