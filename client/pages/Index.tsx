@@ -60,6 +60,7 @@ export default function Index() {
   const [facing, setFacing] = useState<"user" | "environment">("user");
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [prepMessage, setPrepMessage] = useState<string | null>(null);
   const rawCapturedRef = useRef<string | null>(null);
 
   const filterCss = useMemo(() => FILTERS.find(f => f.key === filterKey)?.css || "none", [filterKey]);
