@@ -185,4 +185,33 @@
     opacity: 0.12;
     mix-blend-mode: screen;
   }
+
+  /* Countdown and prep message styles */
+  .countdown-display {
+    font-family: 'Caveat', cursive;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+    background: rgba(0,0,0,0.7);
+    width: clamp(96px, 18vw, 160px);
+    height: clamp(96px, 18vw, 160px);
+    font-weight: 700;
+    font-size: clamp(36px, 10vw, 96px);
+    letter-spacing: 1px;
+    text-shadow: 0 6px 18px rgba(0,0,0,0.6);
+  }
+
+  .prep-message {
+    font-family: 'Special Elite', cursive;
+    color: #fff;
+    background: rgba(0,0,0,0.65);
+    padding: 12px 18px;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    font-size: clamp(14px, 3.6vw, 20px);
+    text-align: center;
+  }
 }
