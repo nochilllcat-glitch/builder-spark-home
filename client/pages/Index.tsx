@@ -636,8 +636,8 @@ function PolaroidPreview({ images, filterCss }: { images: string[]; filterCss: s
           </div>
         </div>
         <div className="pt-4">
-          <div className="mt-2 text-right">
-            <span className="font-hand text-[hsl(var(--mood-muted-ink))] text-sm">Smile Booth</span>
+          <div className="mt-2 text-center">
+            <span className="font-hand text-[hsl(var(--mood-muted-ink))] text-sm">{new Date().toLocaleDateString()}</span>
           </div>
         </div>
       </div>
