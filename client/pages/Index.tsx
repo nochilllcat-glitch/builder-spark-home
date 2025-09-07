@@ -96,19 +96,31 @@ export default function Index() {
   };
 
   useEffect(() => {
-    // whenever filterKey changes and we have a raw capture, update displayed image
     if (rawCapturedRef.current) {
       applyFilterToRaw();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterKey]);
 
-  // Quotes are selected after capture/upload; do not randomize on initial landing page.
-
   useEffect(() => {
     startCamera();
     return () => stopCamera();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facing]);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        // if page becomes visible and there's no active stream but camera is available, restart
+        if (!streamRef.current && !capturedUrl && !capturedUrls.length) {
+          startCamera();
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [capturedUrl, capturedUrls]);
 
   const startCamera = async () => {
     try {
@@ -117,7 +129,7 @@ export default function Index() {
         video: {
           facingMode: { ideal: facing },
           width: { ideal: 1280 },
-          height: { ideal: 720 },
+          height: { ideal: 1280 },
         },
         audio: false,
       };
@@ -125,7 +137,7 @@ export default function Index() {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        try { await videoRef.current.play(); } catch (_) {}
       }
       setHasCamera(true);
     } catch (e) {
@@ -138,6 +150,41 @@ export default function Index() {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
+    }
+  };
+
+  const attemptFocus = async (clientX?: number, clientY?: number) => {
+    try {
+      const track = streamRef.current?.getVideoTracks()[0];
+      if (!track) return;
+      const capabilities: any = track.getCapabilities?.();
+      const settings: any = track.getSettings?.();
+      // If the device supports focusMode, try to trigger a single-shot focus
+      if (capabilities && capabilities.focusMode) {
+        const modes = capabilities.focusMode;
+        const mode = modes.includes('single-shot') ? 'single-shot' : (modes.includes('continuous') ? 'continuous' : modes[0]);
+        await track.applyConstraints({ advanced: [{ focusMode: mode }] } as any);
+      }
+
+      // Try points of interest if available (best-effort; not widely supported)
+      if (clientX != null && clientY != null && capabilities && (capabilities.pointsOfInterest || capabilities.pointOfInterest)) {
+        const video = videoRef.current!
+        const rect = video.getBoundingClientRect();
+        const nx = (clientX - rect.left) / rect.width;
+        const ny = (clientY - rect.top) / rect.height;
+        await track.applyConstraints({ advanced: [{ pointsOfInterest: [{ x: nx, y: ny }] }] } as any);
+      }
+
+      // Fallback: if focusDistance is adjustable, nudge it a bit
+      if (capabilities && typeof capabilities.focusDistance !== 'undefined') {
+        const min = capabilities.focusDistance.min || 0;
+        const max = capabilities.focusDistance.max || 0;
+        const val = (min + max) / 2;
+        await track.applyConstraints({ advanced: [{ focusDistance: val }] } as any);
+      }
+    } catch (e) {
+      // Not all devices/browsers support these constraints — silently ignore
+      // console.debug('focus attempt failed', e);
     }
   };
 
@@ -166,7 +213,6 @@ export default function Index() {
     setIsCapturing(true);
     setCapturedUrls([]);
     for (let i = 0; i < 2; i++) {
-      // countdown 3..1
       for (let c = 3; c >= 1; c--) {
         setCountdown(c);
         await sleep(700);
@@ -202,7 +248,7 @@ export default function Index() {
     ctx.drawImage(img, 0, 0);
     ctx.filter = "none";
     const url = canvas.toDataURL("image/jpeg", 0.9);
-    rawCapturedRef.current = url; // keep original raw capture
+    rawCapturedRef.current = url;
     setCapturedUrl(url);
     setCapturedUrls([url]);
     randomizeQuote();
@@ -247,6 +293,24 @@ export default function Index() {
     if (line) ctx.fillText(line.trim(), x, yy);
   };
 
+  function getCssHslVar(varName: string) {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    if (!raw) return null;
+    // raw is like: "10 80% 96%" -> build hsl(...) string
+    return `hsl(${raw})`;
+  }
+
+  function containDraw(ctx: CanvasRenderingContext2D, img: HTMLImageElement, dx: number, dy: number, dw: number, dh: number) {
+    const sw = img.naturalWidth;
+    const sh = img.naturalHeight;
+    const scale = Math.min(dw / sw, dh / sh);
+    const destW = sw * scale;
+    const destH = sh * scale;
+    const destX = dx + (dw - destW) / 2;
+    const destY = dy + (dh - destH) / 2;
+    ctx.drawImage(img, 0, 0, sw, sh, destX, destY, destW, destH);
+  }
+
   const composePolaroid = async () => {
     const imgs = capturedUrls.length ? capturedUrls : capturedUrl ? [capturedUrl] : [];
     if (!imgs.length) return null;
@@ -261,7 +325,6 @@ export default function Index() {
         }),
       );
 
-      // target export size (portrait Polaroid frame)
       const W = 1200;
       const H = 1500;
       const canvas = document.createElement("canvas");
@@ -272,8 +335,11 @@ export default function Index() {
       if (!ctx) return null;
       ctx.scale(dpr, dpr);
 
-      // background - retro red/off-white
-      ctx.fillStyle = "hsl(var(--mood-bg))";
+      const paperColor = getCssHslVar('--paper') || '#ffffff';
+      const moodInk = getCssHslVar('--mood-ink') || '#3C2A21';
+
+      // canvas background should match paper (keep export simple and white)
+      ctx.fillStyle = paperColor;
       ctx.fillRect(0, 0, W, H);
 
       // polaroid paper (fixed size)
@@ -287,7 +353,7 @@ export default function Index() {
       const paperX = pad;
       const paperY = pad;
       roundRect(ctx, paperX, paperY, paperWidth, paperHeight, 28);
-      ctx.fillStyle = "hsl(var(--paper))"; // paper color
+      ctx.fillStyle = paperColor;
       ctx.fill();
       ctx.restore();
 
@@ -308,9 +374,7 @@ export default function Index() {
         roundRect(ctx, photoX, photoY, halfW, photoH, 12);
         ctx.clip();
         ctx.filter = filterCss;
-        const a = loaded[0];
-        const ac = cover(a.naturalWidth, a.naturalHeight, halfW, photoH);
-        ctx.drawImage(a, ac.sx, ac.sy, ac.sw, ac.sh, photoX, photoY, halfW, photoH);
+        containDraw(ctx, loaded[0], photoX, photoY, halfW, photoH);
         ctx.filter = "none";
         ctx.restore();
 
@@ -319,9 +383,7 @@ export default function Index() {
         roundRect(ctx, photoX + halfW + 8, photoY, halfW, photoH, 12);
         ctx.clip();
         ctx.filter = filterCss;
-        const b = loaded[1];
-        const bc = cover(b.naturalWidth, b.naturalHeight, halfW, photoH);
-        ctx.drawImage(b, bc.sx, bc.sy, bc.sw, bc.sh, photoX + halfW + 8, photoY, halfW, photoH);
+        containDraw(ctx, loaded[1], photoX + halfW + 8, photoY, halfW, photoH);
         ctx.filter = "none";
         ctx.restore();
       } else {
@@ -329,30 +391,24 @@ export default function Index() {
         roundRect(ctx, photoX, photoY, photoW, photoH, 16);
         ctx.clip();
         ctx.filter = filterCss;
-        const a = loaded[0];
-        const ac = cover(a.naturalWidth, a.naturalHeight, photoW, photoH);
-        ctx.drawImage(a, ac.sx, ac.sy, ac.sw, ac.sh, photoX, photoY, photoW, photoH);
+        containDraw(ctx, loaded[0], photoX, photoY, photoW, photoH);
         ctx.filter = "none";
         ctx.restore();
       }
-
-      // washi tape accents
-      drawTape(ctx, paperX + paperWidth * 0.2, paperY - 6, 140, 28, "#FFD5E5", 6, -6);
-      drawTape(ctx, paperX + paperWidth * 0.62, paperY - 10, 140, 28, "#D0F0FF", 6, 8);
+      ctx.restore();
 
       // quote
       const quoteX = paperX + 56;
       const quoteY = paperY + paperHeight - innerPadBottom + 56;
       const quoteMaxWidth = paperWidth - 112;
       await (document as any).fonts?.ready?.catch?.(() => {});
-      ctx.fillStyle = "#3C2A21";
+      ctx.fillStyle = moodInk;
       ctx.textAlign = "center";
       ctx.font = "36px 'Special Elite', 'Courier New', monospace";
-      const qx = paperX + paperWidth / 2 - quoteMaxWidth / 2;
+      const qx = paperX + paperWidth / 2; // center x
       wrapText(ctx, `\u201C${quote}\u201D`, qx, quoteY, quoteMaxWidth, 44);
 
       // subtle grain overlay on photo area
-      // small intensity (0.06) for texture
       drawGrain(ctx, photoX, photoY, photoW, photoH, 0.06);
 
       // watermark
@@ -391,7 +447,6 @@ export default function Index() {
       try {
         await (navigator as any).share({ files: [file], title: "Smile Booth", text: quote });
       } catch (_) {
-        // user cancelled or share failed -> fall back to download
         onDownload();
       }
     } else {
@@ -406,13 +461,21 @@ export default function Index() {
       <div className="mx-auto max-w-md sm:max-w-lg md:max-w-2xl px-4 pb-28">
 
         <main className="space-y-4 mt-4">
-          {/* Camera / Preview panel */}
           <section className="rounded-2xl bg-[hsl(var(--paper))] shadow-lg ring-1 ring-black/5 p-3">
             {!active ? (
               <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-pink-50 to-violet-50 aspect-[3/4] flex items-center justify-center">
                 {hasCamera ? (
                   <>
-                    <video ref={videoRef} playsInline muted className="h-full w-full object-cover" />
+                    <video
+                      ref={videoRef}
+                      playsInline
+                      muted
+                      onClick={(e) => {
+                        // try to focus on tap
+                        attemptFocus(e.clientX, e.clientY);
+                      }}
+                      className="h-full w-full object-cover"
+                    />
                     {isCapturing && countdown && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="rounded-full bg-[rgba(0,0,0,0.6)] text-white w-28 h-28 flex items-center justify-center text-4xl font-bold">{countdown}</div>
@@ -458,7 +521,6 @@ export default function Index() {
             )}
           </section>
 
-          {/* Controls */}
           <section className="rounded-2xl bg-[hsl(var(--paper))] shadow-lg ring-1 ring-black/5 p-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="col-span-2 flex items-center justify-between gap-2">
@@ -466,14 +528,13 @@ export default function Index() {
                 <div />
               </div>
 
-
               <div className="col-span-2 flex items-center justify-between gap-2 pt-1">
                 {!active ? (
                   <span className="text-xs text-[hsl(var(--mood-muted-ink))]">Tip: You can upload if the camera is blocked.</span>
                 ) : (
                   <div className="flex items-center gap-2">
                     <button onClick={retake} className="rounded-md px-3 py-2 bg-[hsl(var(--mood-accent))] text-[hsl(var(--mood-accent-ink))] shadow">Retake</button>
-                    <button onClick={onDownload} disabled={busy} className="rounded-md px-3 py-2 bg-[hsl(var(--mood-primary))] text-white shadow disabled:opacity-50">Download</button>
+                    <button onClick={onDownload} disabled={busy} className="rounded-md px-4 py-3 bg-[hsl(var(--mood-primary))] text-white shadow-lg ring-2 ring-[hsl(var(--mood-primary))] hover:brightness-105 disabled:opacity-50">Download</button>
                     <button onClick={onShare} disabled={busy} className="rounded-md px-3 py-2 bg-[hsl(var(--mood-secondary))] text-[hsl(var(--mood-secondary-ink))] shadow disabled:opacity-50">Share</button>
                   </div>
                 )}
@@ -494,7 +555,6 @@ function PolaroidPreview({ images, quote, filterCss }: { images: string[]; quote
   const imgs = images.slice(0,2);
   return (
     <div className="relative mx-auto w-full max-w-md">
-      {/* Polaroid card (visual only, actual export is 1500x1200) */}
       <div className="relative rounded-2xl bg-[hsl(var(--paper))] p-4 shadow-xl" style={{ maxWidth: 420 }}>
         <div className="absolute -top-3 left-8 h-6 w-32 rotate-[-6deg] rounded bg-[#E8D7C2] shadow" />
         <div className="absolute -top-4 right-10 h-6 w-28 rotate-[8deg] rounded bg-[#D8E7D6] shadow" />
@@ -540,7 +600,6 @@ function cover(sw: number, sh: number, dw: number, dh: number) {
   const dRatio = dw / dh;
   let sx = 0, sy = 0, cw = sw, ch = sh;
   if (sRatio > dRatio) {
-    // source is wider
     ch = sh;
     cw = sh * dRatio;
     sx = (sw - cw) / 2;
