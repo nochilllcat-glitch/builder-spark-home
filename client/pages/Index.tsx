@@ -535,9 +535,9 @@ export default function Index() {
                     {(isCapturing && (countdown != null || prepMessage)) && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         {prepMessage ? (
-                          <div className="rounded-lg bg-[rgba(0,0,0,0.6)] text-white px-6 py-4 text-center text-lg font-semibold">{prepMessage}</div>
+                          <div className="prep-message">{prepMessage}</div>
                         ) : (
-                          <div className="rounded-full bg-[rgba(0,0,0,0.6)] text-white w-28 h-28 flex items-center justify-center text-4xl font-bold">{countdown}</div>
+                          <div className="countdown-display">{countdown}</div>
                         )}
                       </div>
                     )}
