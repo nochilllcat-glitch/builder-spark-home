@@ -656,6 +656,7 @@ function PolaroidPreview({ images, filterCss }: { images: string[]; filterCss: s
               })}
             </div>
             <div className="grain-overlay" />
+            <div className="sparkles" />
           </div>
         </div>
         <div className="pt-4">
