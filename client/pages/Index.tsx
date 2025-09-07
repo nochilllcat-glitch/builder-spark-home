@@ -616,7 +616,7 @@ function PolaroidPreview({ images, filterCss }: { images: string[]; filterCss: s
     <div className="relative mx-auto w-full" style={{maxWidth: 240}}>
       <div className="relative rounded-2xl bg-[hsl(var(--paper))] p-4 shadow-xl" style={{ width: 220 }}>
         <div className="relative overflow-hidden rounded-md border border-black/5 p-2 bg-[hsl(var(--paper))]">
-          <div className="w-full bg-[hsl(var(--paper))] flex items-center justify-center" style={{height: 620}}>
+          <div className="w-full bg-[hsl(var(--paper))] flex items-center justify-center" style={{height: 780}}>
             <div className="flex flex-col gap-6 h-full w-full">
               {display.map((src, idx) => {
                 const isVisible = !!visible[idx];
