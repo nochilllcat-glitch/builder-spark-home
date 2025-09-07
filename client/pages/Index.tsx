@@ -56,7 +56,6 @@ export default function Index() {
   const [capturedUrl, setCapturedUrl] = useState<string | null>(null);
   const [capturedUrls, setCapturedUrls] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const [quote, setQuote] = useState<string>("");
   const [filterKey, setFilterKey] = useState<string>("none");
   const [facing, setFacing] = useState<"user" | "environment">("user");
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -204,23 +203,25 @@ export default function Index() {
     if (!videoRef.current) return;
     setIsCapturing(true);
     setCapturedUrls([]);
+    // 3 photos with 3-second countdown each -> ~9s
     for (let i = 0; i < 3; i++) {
       for (let c = 3; c >= 1; c--) {
         setCountdown(c);
-        await sleep(700);
+        await sleep(1000);
       }
       setCountdown(null);
       const url = await captureOnce();
       if (url) {
         rawCapturedRef.current = url;
+        // preserve capture order: first captured at index 0 (will be drawn at bottom)
         setCapturedUrls(prev => [...prev, url]);
         setCapturedUrl(url);
       }
-      await sleep(600);
+      // short pause between photos
+      await sleep(300);
     }
     setIsCapturing(false);
     stopCamera();
-    randomizeQuote();
     setTimeout(() => randomizeFilter(true), 20);
   };
 
@@ -243,15 +244,8 @@ export default function Index() {
     rawCapturedRef.current = url;
     setCapturedUrl(url);
     setCapturedUrls([url]);
-    randomizeQuote();
     setTimeout(() => randomizeFilter(true), 20);
     stopCamera();
-  };
-
-  const randomizeQuote = () => {
-    const all = Object.values(QUOTES).flat();
-    const pick = all[Math.floor(Math.random() * all.length)];
-    setQuote(pick);
   };
 
   const retake = () => {
@@ -320,30 +314,34 @@ export default function Index() {
     return { sx, sy, sw: cw, sh: ch };
   }
 
-  const drawCuteWatermark = (ctx: CanvasRenderingContext2D, x: number, y: number, size = 48) => {
+  // draw a simple, generic "cute" watermark (non-copyrighted icon)
+  function drawCuteWatermarkLeft(ctx: CanvasRenderingContext2D, xLeft: number, yBottom: number, size = 72) {
     ctx.save();
-    ctx.globalAlpha = 0.75;
-    // simple cute controller-like icon: rounded rectangle with two circles
-    ctx.fillStyle = '#F2C94C';
+    ctx.globalAlpha = 0.9;
     const w = size;
-    const h = size * 0.65;
-    roundRect(ctx, x - w, y - h, w, h, 8);
+    const h = Math.round(size * 0.6);
+    // background rounded pill
+    ctx.fillStyle = '#F2C94C';
+    roundRect(ctx, xLeft + 6, yBottom - h - 6, w, h, 10);
     ctx.fill();
-    // buttons
-    ctx.fillStyle = '#ffffff';
+    // two white circles like eyes/buttons
+    ctx.fillStyle = '#fff';
     ctx.beginPath();
-    ctx.arc(x - w + w * 0.28, y - h + h * 0.4, size * 0.08, 0, Math.PI * 2);
+    ctx.arc(xLeft + 6 + w * 0.28, yBottom - h / 2 - 6, size * 0.08, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(x - w + w * 0.7, y - h + h * 0.4, size * 0.08, 0, Math.PI * 2);
+    ctx.arc(xLeft + 6 + w * 0.72, yBottom - h / 2 - 6, size * 0.08, 0, Math.PI * 2);
     ctx.fill();
-    // smiley on the right
+    // cute little smile
     ctx.beginPath();
-    ctx.fillStyle = '#ffffff';
-    ctx.arc(x - w * 0.38, y - h * 0.52, size * 0.12, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    const sx = xLeft + 6 + w * 0.32;
+    const sy = yBottom - h / 2 + 2 - 6;
+    ctx.arc(sx, sy, size * 0.14, 0, Math.PI, false);
+    ctx.stroke();
     ctx.restore();
-  };
+  }
 
   const composePolaroid = async () => {
     const imgs = capturedUrls.length ? capturedUrls : capturedUrl ? [capturedUrl] : [];
@@ -359,6 +357,9 @@ export default function Index() {
         }),
       );
 
+      // ensure we draw top-to-bottom with first captured at bottom -> reverse
+      const loadedOrdered = loaded.slice().reverse();
+
       const W = 1200;
       const H = 1500;
       const canvas = document.createElement("canvas");
@@ -370,12 +371,13 @@ export default function Index() {
       ctx.scale(dpr, dpr);
 
       const paperColor = getCssHslVar('--paper') || '#ffffff';
+      const frameAccent = 'rgba(0,0,0,0.06)';
 
-      // white paper background
+      // paper background
       ctx.fillStyle = paperColor;
       ctx.fillRect(0, 0, W, H);
 
-      // polaroid paper (fixed size)
+      // polaroid paper with light vintage border
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,0.14)";
       ctx.shadowBlur = 36;
@@ -388,45 +390,71 @@ export default function Index() {
       roundRect(ctx, paperX, paperY, paperWidth, paperHeight, 28);
       ctx.fillStyle = paperColor;
       ctx.fill();
+      // inner subtle stroke to emulate photo strip edge
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = frameAccent;
+      ctx.stroke();
       ctx.restore();
 
       // layout photos inside the Polaroid area as 3 stacked rows
       const innerPadX = 48;
       const innerPadTop = 56;
-      const innerPadBottom = 120; // reduce bottom to allow watermark space
+      const innerPadBottom = 120;
       const photoX = paperX + innerPadX;
       const photoY = paperY + innerPadTop;
       const photoW = paperWidth - innerPadX * 2;
       const photoH = paperHeight - innerPadTop - innerPadBottom;
 
       const gap = 8;
-      const rows = Math.min(3, loaded.length);
+      const rows = Math.min(3, loadedOrdered.length);
       const cellH = Math.floor((photoH - gap * (rows - 1)) / rows);
 
-      ctx.save();
-      ctx.filter = filterCss;
+      // draw frames and images
       for (let i = 0; i < rows; i++) {
         const dy = photoY + i * (cellH + gap);
+        // draw inner frame (white with subtle shadow)
+        ctx.save();
         roundRect(ctx, photoX, dy, photoW, cellH, 12);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+        ctx.stroke();
         ctx.clip();
-        // use cover so image fills the frame and is cropped to frame
-        const img = loaded[i];
+
+        // draw image cropped to cell using cover
+        const img = loadedOrdered[i];
         const c = cover(img.naturalWidth, img.naturalHeight, photoW, cellH);
         ctx.drawImage(img, c.sx, c.sy, c.sw, c.sh, photoX, dy, photoW, cellH);
-        // restore clip between iterations
+
         ctx.restore();
-        ctx.save();
       }
-      ctx.filter = "none";
+
+      // vintage scratches / subtle lines between photos
+      ctx.save();
+      ctx.globalAlpha = 0.04;
+      ctx.fillStyle = '#000';
+      for (let i = 1; i < rows; i++) {
+        const yLine = photoY + i * cellH + (i - 1) * gap - Math.floor(gap / 2);
+        ctx.fillRect(photoX + 6, yLine, photoW - 12, 1);
+      }
       ctx.restore();
 
       // subtle grain overlay on photo area
       drawGrain(ctx, photoX, photoY, photoW, photoH, 0.06);
 
-      // small cute watermark at bottom-right of paper (not covering photos)
-      const wmX = paperX + paperWidth - 24;
-      const wmY = paperY + paperHeight - 24;
-      drawCuteWatermark(ctx, wmX, wmY, 64);
+      // draw a larger watermark inside the bottom frame (left side)
+      const bottomIndex = rows - 1;
+      const bottomDy = photoY + bottomIndex * (cellH + gap);
+      const wmLeft = photoX + 12;
+      const wmBottom = bottomDy + cellH - 12;
+      drawCuteWatermarkLeft(ctx, wmLeft, wmBottom, Math.min(96, Math.round(cellH * 0.9)));
+
+      // small text watermark on paper corner
+      ctx.fillStyle = '#9B8C7B';
+      ctx.textAlign = 'right';
+      ctx.font = "20px 'Caveat', cursive";
+      ctx.fillText('Smile Booth', paperX + paperWidth - 24, paperY + paperHeight - 24);
 
       return canvas;
     } finally {
@@ -456,7 +484,7 @@ export default function Index() {
     const file = new File([blob], `smilebooth-${Date.now()}.jpg`, { type: "image/jpeg" });
     if ((navigator as any).share && (navigator as any).canShare?.({ files: [file] })) {
       try {
-        await (navigator as any).share({ files: [file], title: "Smile Booth", text: quote });
+        await (navigator as any).share({ files: [file], title: "Smile Booth" });
       } catch (_) {
         onDownload();
       }
@@ -561,25 +589,36 @@ export default function Index() {
 }
 
 function PolaroidPreview({ images, filterCss }: { images: string[]; filterCss: string }) {
-  const imgs = images.slice(0,3);
+  // show up to 3 images, arranged bottom-to-top: first captured at bottom
+  const imgs = images.slice(0, 3);
+  const display = imgs.slice().reverse(); // draw top-to-bottom where last captured is top
   return (
     <div className="relative mx-auto w-full max-w-md">
       <div className="relative rounded-2xl bg-[hsl(var(--paper))] p-4 shadow-xl" style={{ maxWidth: 420 }}>
         <div className="relative overflow-hidden rounded-md border border-black/5 p-3 bg-[hsl(var(--paper))]">
           <div className="w-full bg-[hsl(var(--paper))] flex items-center justify-center" style={{height: '420px'}}>
-            {imgs.length >= 3 ? (
+            {display.length >= 3 ? (
               <div className="flex flex-col gap-2 h-full w-full">
-                <img src={imgs[0]} className="h-1/3 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="one" />
-                <img src={imgs[1]} className="h-1/3 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="two" />
-                <img src={imgs[2]} className="h-1/3 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="three" />
+                <img src={display[0]} className="h-1/3 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="one" />
+                <img src={display[1]} className="h-1/3 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="two" />
+                <div className="relative h-1/3 w-full">
+                  <img src={display[2]} className="absolute inset-0 h-full w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="three" />
+                  <div style={{ position: 'absolute', left: 10, bottom: 8, opacity: 0.95 }}>
+                    <svg width="68" height="48" viewBox="0 0 68 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="2" y="6" width="56" height="28" rx="6" fill="#F2C94C" />
+                      <circle cx="18" cy="20" r="3.6" fill="#fff" />
+                      <circle cx="36" cy="20" r="3.6" fill="#fff" />
+                    </svg>
+                  </div>
+                </div>
               </div>
-            ) : imgs.length === 2 ? (
+            ) : display.length === 2 ? (
               <div className="flex flex-col gap-2 h-full w-full">
-                <img src={imgs[0]} className="h-1/2 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="top" />
-                <img src={imgs[1]} className="h-1/2 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="bottom" />
+                <img src={display[0]} className="h-1/2 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="top" />
+                <img src={display[1]} className="h-1/2 w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="bottom" />
               </div>
             ) : (
-              <img src={imgs[0]} className="h-full w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="single" />
+              <img src={display[0]} className="h-full w-full object-cover rounded-sm" style={{ filter: filterCss }} alt="single" />
             )}
             <div className="grain-overlay" />
           </div>
@@ -588,14 +627,6 @@ function PolaroidPreview({ images, filterCss }: { images: string[]; filterCss: s
           <div className="mt-2 text-right">
             <span className="font-hand text-[hsl(var(--mood-muted-ink))] text-sm">Smile Booth</span>
           </div>
-        </div>
-        {/* small preview watermark */}
-        <div style={{ position: 'absolute', right: 12, bottom: 12, opacity: 0.85 }}>
-          <svg width="42" height="28" viewBox="0 0 42 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="2" y="6" width="36" height="16" rx="4" fill="#F2C94C" />
-            <circle cx="12" cy="14" r="2.4" fill="#fff" />
-            <circle cx="24" cy="14" r="2.4" fill="#fff" />
-          </svg>
         </div>
       </div>
     </div>
