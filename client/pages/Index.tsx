@@ -380,22 +380,32 @@ export default function Index() {
       // layout photos inside the Polaroid area as 3 stacked rows
       const innerPadX = 48;
       const innerPadTop = 56;
-      const innerPadBottom = 120;
+      const innerPadBottom = 140; // extra room for date label
       const photoX = paperX + innerPadX;
       const photoY = paperY + innerPadTop;
       const photoW = paperWidth - innerPadX * 2;
       const photoH = paperHeight - innerPadTop - innerPadBottom;
 
-      const gap = 8;
+      const gap = 12;
       const rows = Math.min(3, loadedOrdered.length);
-      const cellH = Math.floor((photoH - gap * (rows - 1)) / rows);
+
+      // enforce each cell to be 3:4 (w:h)
+      let cellW = photoW;
+      let cellH = Math.floor(cellW * (4 / 3));
+      // if total height exceeds available space, shrink width to fit
+      if (cellH * rows + gap * (rows - 1) > photoH) {
+        cellH = Math.floor((photoH - gap * (rows - 1)) / rows);
+        cellW = Math.floor(cellH * (3 / 4));
+      }
+      const offsetX = Math.floor((photoW - cellW) / 2);
 
       // draw frames and images
       for (let i = 0; i < rows; i++) {
         const dy = photoY + i * (cellH + gap);
+        const dx = photoX + offsetX;
         // draw inner frame (white with subtle shadow)
         ctx.save();
-        roundRect(ctx, photoX, dy, photoW, cellH, 12);
+        roundRect(ctx, dx, dy, cellW, cellH, 14);
         ctx.fillStyle = '#fff';
         ctx.fill();
         ctx.lineWidth = 2;
@@ -403,10 +413,10 @@ export default function Index() {
         ctx.stroke();
         ctx.clip();
 
-        // draw image cropped to cell using cover
+        // draw image cropped to cell using cover while maintaining 3:4 aspect
         const img = loadedOrdered[i];
-        const c = cover(img.naturalWidth, img.naturalHeight, photoW, cellH);
-        ctx.drawImage(img, c.sx, c.sy, c.sw, c.sh, photoX, dy, photoW, cellH);
+        const c = cover(img.naturalWidth, img.naturalHeight, cellW, cellH);
+        ctx.drawImage(img, c.sx, c.sy, c.sw, c.sh, dx, dy, cellW, cellH);
 
         ctx.restore();
       }
