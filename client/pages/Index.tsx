@@ -568,7 +568,7 @@ export default function Index() {
                   </div>
                   <button
                     onClick={startCaptureSequence}
-                    className="h-12 w-12 rounded-full bg-[hsl(var(--mood-primary))] shadow-md active:scale-95 transition"
+                    className="h-14 w-14 rounded-full bg-[hsl(var(--mood-primary))] shadow-md active:scale-95 transition cute-pulse"
                     aria-label="Take photo sequence"
                   />
                 </div>
