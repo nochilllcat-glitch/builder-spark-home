@@ -322,35 +322,7 @@ export default function Index() {
     return { sx, sy, sw: cw, sh: ch };
   }
 
-  // draw a simple, generic "cute" watermark (non-copyrighted icon)
-  function drawCuteWatermarkLeft(ctx: CanvasRenderingContext2D, xLeft: number, yBottom: number, size = 72) {
-    ctx.save();
-    ctx.globalAlpha = 0.9;
-    const w = size;
-    const h = Math.round(size * 0.6);
-    // background rounded pill
-    ctx.fillStyle = '#F2C94C';
-    roundRect(ctx, xLeft + 6, yBottom - h - 6, w, h, 10);
-    ctx.fill();
-    // two white circles like eyes/buttons
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(xLeft + 6 + w * 0.28, yBottom - h / 2 - 6, size * 0.08, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(xLeft + 6 + w * 0.72, yBottom - h / 2 - 6, size * 0.08, 0, Math.PI * 2);
-    ctx.fill();
-    // cute little smile
-    ctx.beginPath();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    const sx = xLeft + 6 + w * 0.32;
-    const sy = yBottom - h / 2 + 2 - 6;
-    ctx.arc(sx, sy, size * 0.14, 0, Math.PI, false);
-    ctx.stroke();
-    ctx.restore();
-  }
-
+  
   const composePolaroid = async () => {
     const imgs = capturedUrls.length ? capturedUrls : capturedUrl ? [capturedUrl] : [];
     if (!imgs.length) return null;
