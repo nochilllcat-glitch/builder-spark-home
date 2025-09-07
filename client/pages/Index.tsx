@@ -551,14 +551,14 @@ export default function Index() {
                 <div />
               </div>
 
-              <div className="col-span-2 flex items-center justify-between gap-2 pt-1">
+              <div className="col-span-2 flex items-center justify-center gap-2 pt-1">
                 {!active ? (
                   <span className="text-xs text-[hsl(var(--mood-muted-ink))]">Tip: You can upload if the camera is blocked.</span>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <button onClick={retake} className="rounded-md px-3 py-2 bg-[hsl(var(--mood-accent))] text-[hsl(var(--mood-accent-ink))] shadow">Retake</button>
-                    <button onClick={onDownload} disabled={busy} className="rounded-md px-4 py-3 bg-[hsl(var(--mood-primary))] text-white shadow-lg ring-2 ring-[hsl(var(--mood-primary))] hover:brightness-105 disabled:opacity-50">Download</button>
-                    <button onClick={onShare} disabled={busy} className="rounded-md px-3 py-2 bg-[hsl(var(--mood-secondary))] text-[hsl(var(--mood-secondary-ink))] shadow disabled:opacity-50">Share</button>
+                  <div className="flex items-center justify-center w-full gap-4 py-2">
+                    <button onClick={retake} className="rounded-md px-4 py-2 bg-[hsl(var(--mood-accent))] text-[hsl(var(--mood-accent-ink))] shadow">Retake</button>
+                    <button onClick={onDownload} disabled={busy} className="rounded-md px-5 py-3 bg-[hsl(var(--mood-primary))] text-white shadow-lg ring-2 ring-[hsl(var(--mood-primary))] hover:brightness-105 disabled:opacity-50">Download</button>
+                    <button onClick={onShare} disabled={busy} className="rounded-md px-4 py-2 bg-[hsl(var(--mood-secondary))] text-[hsl(var(--mood-secondary-ink))] shadow disabled:opacity-50">Share</button>
                   </div>
                 )}
               </div>
